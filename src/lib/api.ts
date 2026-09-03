@@ -1,0 +1,229 @@
+import type {
+  KeyframeListResponse,
+  KeyframeQueryRequest,
+  KeyframeQueryResponse,
+  TranscriptSemanticQueryRequest,
+  TranscriptSemanticQueryResponse,
+  TranscriptExactQueryRequest,
+  TranscriptExactQueryResponse,
+  OcrQueryRequest,
+  OcrQueryResponse,
+  TemporalQueryRequest,
+  TemporalQueryResponse,
+  SimilarResponse,
+  SimilarQueryParams,
+  ListKeyframesParams,
+  FetchLogsParams,
+  LogEntry,
+  HTTPValidationError,
+} from './types';
+import { config } from './config.svelte';
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public statusText: string,
+    public validationDetails?: HTTPValidationError
+  ) {
+    super(`API Error ${status} (${statusText}): ${JSON.stringify(validationDetails ?? {})}`);
+    this.name = 'ApiError';
+  }
+}
+
+export class ApiClient {
+  private headers: Record<string, string>;
+
+  constructor(customHeaders: Record<string, string> | undefined = undefined) {
+    this.headers = customHeaders ?? {};
+  }
+
+  // --- Internal Utilities ---
+
+  private get baseUrl(): string {
+    return config.baseUrl.replace(/\/+$/, '');
+  }
+
+  private buildUrl(path: string, params?: Record<string, unknown>): string {
+    const url = new URL(`${this.baseUrl}${path}`);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+    return url.toString();
+  }
+
+  private async request<T>(
+    path: string,
+    options: RequestInit = {},
+    params?: Record<string, unknown>
+  ): Promise<T> {
+    const url = this.buildUrl(path, params);
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...this.headers,
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      let validationError: HTTPValidationError | undefined;
+      try {
+        validationError = await response.json();
+      } catch {
+        // Body was not JSON
+      }
+      throw new ApiError(response.status, response.statusText, validationError);
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+  // --- 1. Keyframe & Video Media Endpoints ---
+
+  async listKeyframes(videoId: string, params?: ListKeyframesParams): Promise<KeyframeListResponse> {
+    return this.request<KeyframeListResponse>(
+      `/keyframe/${encodeURIComponent(videoId)}/keyframes`,
+      { method: 'GET' },
+      params as Record<string, unknown>
+    );
+  }
+
+  getKeyframeImageUrl(videoId: string, keyframeId: string): string {
+    return this.buildUrl(
+      `/keyframe/${encodeURIComponent(videoId)}/${encodeURIComponent(keyframeId)}`
+    );
+  }
+
+  async getKeyframeBlob(videoId: string, keyframeId: string): Promise<Blob> {
+    const url = this.getKeyframeImageUrl(videoId, keyframeId);
+    const response = await fetch(url, { method: 'GET', headers: this.headers });
+    if (!response.ok) throw new ApiError(response.status, response.statusText);
+    return response.blob();
+  }
+
+  async checkKeyframeExist(videoId: string, keyframeId: string): Promise<boolean> {
+    const url = this.getKeyframeImageUrl(videoId, keyframeId);
+    const response = await fetch(url, { method: 'HEAD', headers: this.headers });
+    return response.ok;
+  }
+
+  getVideoStreamUrl(videoId: string): string {
+    return this.buildUrl(`/video/${encodeURIComponent(videoId)}`);
+  }
+
+  async getVideoFps(videoId: string): Promise<number | null> {
+    const response = await this.listKeyframes(videoId, { end_ms: 120000 });
+    return response.keyframes?.[0]?.video_fps ?? null;
+  }
+
+  // async getVideoBlob(videoId: string): Promise<Blob> {
+  //   const url = this.getVideoStreamUrl(videoId);
+  //   const response = await fetch(url, { method: 'GET', headers: this.headers });
+  //   if (!response.ok) throw new ApiError(response.status, response.statusText);
+  //   return response.blob();
+  // }
+
+  async checkVideoExist(videoId: string): Promise<boolean> {
+    const url = this.getVideoStreamUrl(videoId);
+    const response = await fetch(url, { method: 'HEAD', headers: this.headers });
+    return response.ok;
+  }
+
+  // --- 2. Query Endpoints ---
+
+  async queryKeyframe(payload: KeyframeQueryRequest): Promise<KeyframeQueryResponse> {
+    return this.request<KeyframeQueryResponse>('/query/keyframe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async queryTranscriptSemantic(payload: TranscriptSemanticQueryRequest): Promise<TranscriptSemanticQueryResponse> {
+    return this.request<TranscriptSemanticQueryResponse>('/query/transcript/semantic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async queryTranscriptExact(payload: TranscriptExactQueryRequest): Promise<TranscriptExactQueryResponse> {
+    return this.request<TranscriptExactQueryResponse>('/query/transcript/exact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async queryOcr(payload: OcrQueryRequest): Promise<OcrQueryResponse> {
+    return this.request<OcrQueryResponse>('/query/ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async queryTemporal(payload: TemporalQueryRequest): Promise<TemporalQueryResponse> {
+    return this.request<TemporalQueryResponse>('/query/temporal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // --- 3. Similarity Search Endpoints ---
+
+  async getSimilarKeyframes(
+    videoId: string,
+    keyframeId: string,
+    params?: SimilarQueryParams
+  ): Promise<SimilarResponse> {
+    return this.request<SimilarResponse>(
+      `/similar/${encodeURIComponent(videoId)}/${encodeURIComponent(keyframeId)}`,
+      { method: 'GET' },
+      params as Record<string, unknown>
+    );
+  }
+
+  async searchSimilarByImage(
+    file: File | Blob,
+    params?: SimilarQueryParams,
+    fileName = 'query_image.jpg'
+  ): Promise<SimilarResponse> {
+    const formData = new FormData();
+    formData.append('file', file, fileName);
+
+    return this.request<SimilarResponse>(
+      '/similar/upload',
+      {
+        method: 'POST',
+        body: formData,
+      },
+      params as Record<string, unknown>
+    );
+  }
+
+  async fetchLogs(params?: FetchLogsParams): Promise<LogEntry[]> {
+    return this.request<LogEntry[]>(
+      '/logs',
+      { method: 'GET' },
+      params as Record<string, unknown>
+    );
+  }
+
+  async fetchLogById(requestId: string): Promise<LogEntry> {
+    return this.request<LogEntry>(
+      `/logs/${encodeURIComponent(requestId)}`,
+      { method: 'GET' }
+    );
+  }
+
+  async healthCheck(): Promise<boolean> {
+    const response = await this.request<Record<string, string>>('/health', { method: 'GET' });
+    return response.status === 'ok';
+  }
+}
