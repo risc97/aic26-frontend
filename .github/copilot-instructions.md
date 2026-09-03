@@ -1,0 +1,1 @@
+Always adhere to the instructions and conventions defined in ../AGENTS.md.
