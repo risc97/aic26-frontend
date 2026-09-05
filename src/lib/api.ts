@@ -222,8 +222,8 @@ export class ApiClient {
     );
   }
 
-  async healthCheck(): Promise<boolean> {
-    const response = await this.request<Record<string, string>>('/health', { method: 'GET' });
-    return response.status === 'ok';
-  }
+  // async healthCheck(): Promise<boolean> {
+  //   const response = await this.request<Record<string, string>>('/health', { method: 'GET' });
+  //   return response.status === 'ok';
+  // }
 }

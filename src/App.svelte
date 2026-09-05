@@ -1,24 +1,27 @@
 <script lang="ts">
-  import HeaderNew from './ui/Header_new.svelte';
+  import HeaderNew from './ui/Header.svelte';
   import ConfigModal from './ui/ConfigModal.svelte';
   import SingleSearch from './ui/SingleSearch.svelte';
-  // ... other imports and state ...
 
   let mode = $state('single');
   let isConfigOpen = $state(false);
 </script>
 
 <HeaderNew 
-  {mode} 
-  setMode={(m) => mode = m} 
+  bind:mode={mode} 
   onOpenConfigModal={() => isConfigOpen = true} 
 />
 
 <main class="flex-1 overflow-hidden">
   {#if mode === 'single'}
     <SingleSearch />
+  {:else if mode === 'multiple'}
+    <!-- Temporal mode view placeholder -->
+  {:else if mode === 'submit'}
+    <!-- Review mode view placeholder -->
+  {:else if mode === 'logs'}
+    <!-- Logs mode view placeholder -->
   {/if}
-  <!-- other views -->
 </main>
 
 <ConfigModal 
