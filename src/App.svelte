@@ -2,6 +2,8 @@
   import HeaderNew from './ui/Header.svelte';
   import ConfigModal from './ui/ConfigModal.svelte';
   import SingleSearch from './ui/SingleSearch.svelte';
+  import MultipleSearch from './ui/MultipleSearch.svelte';
+  import Review from './ui/Review.svelte';
 
   let mode = $state('single');
   let isConfigOpen = $state(false);

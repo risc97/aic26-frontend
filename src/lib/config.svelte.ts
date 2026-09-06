@@ -1,18 +1,13 @@
-const BACKEND_URL = 'http://140.245.109.120:62309/';
+const BACKEND_URL = 'http://140.245.109.120:62309';
 const BACKEND_URL_STORAGE_KEY = 'backend_url';
 
 class AppConfig {
-  baseUrl = $state(BACKEND_URL);
+  baseUrl = $state("");
   apiConnected = $state(false);
   apiPending = $state(false);
 
   constructor() {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(BACKEND_URL_STORAGE_KEY);
-      if (stored) {
-        this.baseUrl = stored;
-      }
-    }
+    this.setBaseUrl(BACKEND_URL);
   }
 
   setBaseUrl(url: string) {

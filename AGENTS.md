@@ -19,3 +19,4 @@
   3. Existing repository code patterns
 - **Code preference**
   - Use SVG icons
+  - Use Bits-ui exclusively 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Dialog, Button } from "bits-ui";
   import { config } from '../lib/config.svelte';
-  import { ApiClient } from "../lib/api";
+  import { mockConfig } from '../lib/mock.svelte';
 
   let { open = $bindable(false) }: { open: boolean } = $props();
 
@@ -15,6 +15,11 @@
     <Dialog.Overlay class="fixed inset-0 z-50 bg-black/50" />
     <Dialog.Content class="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 border-2 border-neutral-900 bg-white p-6 shadow-xl">
       <Dialog.Title class="text-lg font-bold">Configuration</Dialog.Title>
+
+      <div class="flex items-center space-x-2 my-4">
+        <input type="checkbox" id="mock-mode" bind:checked={mockConfig.enabled} class="rounded border-gray-700" />
+        <label for="mock-mode" class="text-sm font-medium">Enable Testing mode</label>
+      </div>
       
       <div class="mt-4 flex flex-col gap-3">
         <div>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { config } from '../lib/config.svelte';
   import { Tabs, Tooltip } from "bits-ui";
+  import { mockConfig } from '../lib/mock.svelte';
 
   interface HeaderProps {
     onOpenConfigModal: () => void;
@@ -24,6 +25,7 @@
   });
 
   let statusDot = $derived.by(() => {
+    if (mockConfig.enabled) return 'bg-blue-400';
     if (config.apiPending) return 'bg-yellow-400 animate-pulse';
     if (config.apiConnected) return 'bg-emerald-500';
     return 'bg-rose-600';
@@ -42,7 +44,7 @@
 </script>
 
 <header class="z-20 shrink-0 border-b-2 border-neutral-900 bg-white select-none transition-colors duration-200">
-  <div class="flex w-full items-center justify-between gap-4 px-5 py-2">
+  <div class="flex w-full items-center justify-between gap-4 px-5 py-1.5">
 
     <!-- Left: Brand -->
     <div class="flex shrink-0 items-center gap-2">
@@ -55,7 +57,7 @@
     </div>
 
     <!-- Center: Mode Switcher -->
-    <div class="flex shrink-0 items-center gap-2 mx-auto">
+    <div class="flex shrink-0 items-center gap-2">
       <Tabs.Root 
         value={mode} 
         onValueChange={(val) => {
@@ -75,7 +77,7 @@
             value="multiple"
             class={`px-3 py-1.5 text-sm font-semibold transition-colors outline-none ${getActiveColorClass('multiple', mode === 'multiple')}`}
           >
-            Temporal
+            Multiple
           </Tabs.Trigger>
           <Tabs.Trigger
             value="submit"
@@ -104,10 +106,6 @@
           >
             <span class={`h-3.5 w-3.5 border border-slate-400 ${statusDot}`}></span>
           </Tooltip.Trigger>
-          <Tooltip.Content class="z-50 border-2 border-neutral-900 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
-            Backend: ({config.apiConnected ? 'Online' : 'Offline'})
-            <Tooltip.Arrow class="border-neutral-900 fill-white" />
-          </Tooltip.Content>
         </Tooltip.Root>
 
         <Tooltip.Root>

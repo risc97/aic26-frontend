@@ -19,6 +19,16 @@ import type {
 } from './types';
 import { config } from './config.svelte';
 
+import {
+  mockConfig,
+  generateMockImageUrl, 
+  mockKeyframeQueryResponse, 
+  mockTranscriptResponse, 
+  mockOcrResponse, 
+  mockKeyframeListResponse, 
+  mockSimilarResponse 
+} from './mock.svelte';
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -60,6 +70,17 @@ export class ApiClient {
     options: RequestInit = {},
     params?: Record<string, unknown>
   ): Promise<T> {
+    if (mockConfig.enabled) {
+      await new Promise((resolve) => setTimeout(resolve, mockConfig.latencyMs));
+      if (path.includes('/query/keyframe')) return mockKeyframeQueryResponse as unknown as T;
+      if (path.includes('/query/transcript')) return mockTranscriptResponse as unknown as T;
+      if (path.includes('/query/ocr')) return mockOcrResponse as unknown as T;
+      if (path.includes('/keyframes')) return mockKeyframeListResponse as unknown as T;
+      if (path.includes('/similar')) return mockSimilarResponse as unknown as T;
+      
+      return {} as T;
+    }
+
     const url = this.buildUrl(path, params);
     const response = await fetch(url, {
       ...options,
@@ -93,6 +114,9 @@ export class ApiClient {
   }
 
   getKeyframeImageUrl(videoId: string, keyframeId: string): string {
+    if (mockConfig.enabled) {
+      return generateMockImageUrl(videoId, keyframeId);
+    }
     return this.buildUrl(
       `/keyframe/${encodeURIComponent(videoId)}/${encodeURIComponent(keyframeId)}`
     );
