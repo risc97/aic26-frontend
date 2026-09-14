@@ -19,4 +19,5 @@
   3. Existing repository code patterns
 - **Code preference**
   - Use SVG icons
-  - Use Bits-ui exclusively 
+  - Strictly avoid nested ternary 
+  - Use Bits UI exclusively 

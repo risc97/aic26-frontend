@@ -80,35 +80,18 @@
   let isOcrExpanded = $state(false);
   let isTranscriptExpanded = $state(false);
   let moved = $state(false);
-  let isCompactMeta = $derived(variant === 'events' || variant === 'assigned');
-  let tiltCls = $derived(variant === 'single' ? 'sketch-tilt' : '');
-
-  let stateStyles = $derived(
-    isSelected
-      ? 'border-rose-600 bg-rose-100'
-      : excluded
-        ? 'border-neutral-900 bg-slate-200'
-        : assignedStageId !== null
-          ? 'border-rose-600 bg-rose-100'
-          : added
-            ? 'border-emerald-500 bg-emerald-50'
-            : isCompactMeta
-              ? 'border-neutral-900 bg-slate-200 hover:border-slate-400'
-              : variant === 'sequence'
-                ? 'border-neutral-900 bg-slate-200 hover:border-slate-400'
-                : 'border-neutral-900 bg-slate-100 hover:border-slate-400'
-  );
-
-  let chipTheme = $derived(
-    variant === 'events' || variant === 'assigned' || variant === 'sequence'
-      ? 'bg-rose-100 text-rose-950'
-      : 'bg-blue-100 text-blue-950'
-  );
 </script>
 
-<div class={`group relative flex h-full flex-col overflow-hidden border-2 motion-safe:transition-all motion-safe:duration-300 ${tiltCls} ${stateStyles}`}>
-  <!-- Thumbnail -->
-  <div class={`relative aspect-video overflow-hidden border-b-2 border-neutral-900 ${excluded ? 'bg-slate-200' : 'bg-slate-100'}`}>
+<div class="group flex h-full flex-col overflow-hidden border-3 border-black rounded-lg motion-safe:transition-all motion-safe:duration-300">
+   <!-- Thumbnail -->
+  <div 
+    class="relative aspect-video overflow-hidden border-b-2 border-neutral-900 cursor-pointer bg-slate-100"
+    role="button"
+    tabindex="0"
+    onclick={() => onWatchVideo(item)}
+    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onWatchVideo(item); } }}
+    title="Click to watch video"
+  >
     {#if hasKeyframe && !imgError && thumbnailUrl}
       <img
         src={thumbnailUrl}
@@ -121,10 +104,6 @@
       <div class="flex h-full w-full flex-col items-center justify-center gap-1 bg-slate-200 text-slate-500">
         <span class="text-xs font-bold">No Keyframe</span>
       </div>
-    {/if}
-
-    {#if excluded}
-      <div class="diagonal-stripes pointer-events-none absolute inset-0" aria-hidden="true" />
     {/if}
 
     {#if assignedStageId !== null && !isSelected}
@@ -146,10 +125,10 @@
   </div>
 
   <!-- Metadata -->
-  <div class={`flex flex-1 flex-col gap-1 p-2.5 ${excluded ? 'text-slate-500 opacity-60' : 'text-slate-700'}`}>
+  <div class="flex flex-1 flex-col gap-1 p-2 text-slate-700">
     <div class="flex items-center justify-between gap-1.5">
       <div class="flex min-w-0 items-center gap-1.5">
-        <span class={`min-w-0 truncate border-2 border-neutral-900 px-1 py-0.5 font-mono text-base font-bold ${chipTheme}`} title={video_id}>
+        <span class={`min-w-0 truncate border-2 border-neutral-900 px-1 py-0.5 font-mono text-base font-bold bg-blue-100 text-blue-950`} title={video_id}>
           {video_id}
         </span>
         <span class="truncate font-mono text-sm font-bold text-slate-700" title={hasKeyframe ? `Frame #${item.frame_idx ?? keyframe_id}` : 'None'}>

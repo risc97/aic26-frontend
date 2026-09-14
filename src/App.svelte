@@ -9,23 +9,27 @@
   let isConfigOpen = $state(false);
 </script>
 
-<HeaderNew 
-  bind:mode={mode} 
-  onOpenConfigModal={() => isConfigOpen = true} 
-/>
+<div class="h-screen flex flex-col overflow-hidden bg-slate-50">
+  <div class="sticky top-0 z-30">
+    <HeaderNew 
+      bind:mode={mode} 
+      onOpenConfigModal={() => isConfigOpen = true} 
+    />
+  </div>
 
-<main class="flex-1 overflow-hidden">
-  {#if mode === 'single'}
-    <SingleSearch />
-  {:else if mode === 'multiple'}
-    <!-- Temporal mode view placeholder -->
-  {:else if mode === 'submit'}
-    <!-- Review mode view placeholder -->
-  {:else if mode === 'logs'}
-    <!-- Logs mode view placeholder -->
-  {/if}
-</main>
+  <main class="min-h-0 flex-1 flex flex-col">
+    {#if mode === 'single'}
+      <SingleSearch />
+    {:else if mode === 'multiple'}
+      <!-- Temporal mode view placeholder -->
+    {:else if mode === 'submit'}
+      <!-- Review mode view placeholder -->
+    {:else if mode === 'logs'}
+      <!-- Logs mode view placeholder -->
+    {/if}
+  </main>
 
-<ConfigModal 
-  bind:open={isConfigOpen} 
-/>
+  <ConfigModal 
+    bind:open={isConfigOpen} 
+  />
+</div>
