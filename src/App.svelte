@@ -17,7 +17,7 @@
     />
   </div>
 
-  <main class="min-h-0 flex-1 flex flex-col">
+  <main class="min-h-0 flex-1 flex flex-col px-2 pb-6 overflow-y-scroll">
     {#if mode === 'single'}
       <SingleSearch />
     {:else if mode === 'multiple'}

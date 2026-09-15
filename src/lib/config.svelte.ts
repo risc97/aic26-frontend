@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://140.245.109.120:62309';
+const BACKEND_URL = 'http://localhost:3000';
 const BACKEND_URL_STORAGE_KEY = 'backend_url';
 
 class AppConfig {

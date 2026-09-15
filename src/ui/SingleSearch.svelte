@@ -1,17 +1,26 @@
 <script lang="ts">
-  import { Select, Toggle, Checkbox, Label, Pagination, Collapsible } from 'bits-ui';
+  import { Toggle, Pagination } from 'bits-ui';
   import { singleSearch } from '../lib/singleSearchImpl.svelte';
-  import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-  import Gear from 'phosphor-svelte/lib/Gear';
+  import {
+    SparkleIcon,
+    ArticleIcon,
+    ScanIcon,
+    TelevisionIcon,
+    MagnifyingGlassIcon,
+    SlidersHorizontalIcon
+  } from 'phosphor-svelte';
+  import { BORDER_STYLE, ACCENT_PALETTES } from './common/CommonStyle';
   import MyDropdown from './common/MyDropdown.svelte';
   import MyCheckbox from './common/MyCheckbox.svelte';
+  import MyInputbox from './common/MyInputbox.svelte';
   import KeyframeCard from './KeyframeCard.svelte';
+  import VideoDialog from './VideoDialog.svelte';
 
   const MODE_OPTIONS = [
-    { value: 'semantic', label: '✨ Semantic' },
-    { value: 'transcript', label: '📄 Transcript' },
-    { value: 'ocr', label: '🔍 OCR' },
-    { value: 'video_id', label: '📺 Video ID' },
+    { value: 'semantic', label: 'Semantic', icon: SparkleIcon, search_placeholder: "Query: 'person riding a red bicycle'..." },
+    { value: 'transcript', label: 'Transcript', icon: ArticleIcon, search_placeholder: "Query: 'add 2 tbps of sugar'..." },
+    { value: 'ocr', label: 'OCR', icon: ScanIcon, search_placeholder: "Query: 'text in the image'..." },
+    { value: 'video_id', label: 'Video ID', icon: TelevisionIcon, search_placeholder: "Video ID (eg. L21_V005)" },
   ];
 
   const MODEL_OPTIONS = [
@@ -20,8 +29,6 @@
     { value: 'pe', label: 'pe' },
   ];
 
-  const BORDER_STYLE = "rounded border-2 border-slate-900";
-
   function handleKeyDown(e: KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -29,54 +36,76 @@
     }
   }
 
+  type VideoItem = Item & {
+    transcriptText?: string;
+    ocrText?: string;
+  };
+
+  let selectedVideo = $state<VideoItem | null>(null);
+  let videoDialogOpen = $state(false);
+
+  function openVideo(item: VideoItem) {
+    selectedVideo = item;
+    videoDialogOpen = true;
+  }
+
+  function handleVideoDialogChange(open: boolean) {
+    videoDialogOpen = open;
+
+    if (!open) {
+      selectedVideo = null;
+    }
+  }
+
   $inspect(singleSearch.searchMode)
 </script>
 
-<div class="min-h-0 flex flex-col overflow-y-auto">
+<div class="min-h-0 flex flex-1 flex-col">
   <!-- Search bar  -->
-  <div class="flex justify-center-safe gap-1 p-4 border-b border-slate-50">
+  <div class="flex gap-1 p-2">
     <!-- Mode Selection -->
     <MyDropdown items={MODE_OPTIONS} bind:value={singleSearch.searchMode} width="w-36" height="h-11" accent="blue" strong={true}/>
 
     <!-- Input field -->
-    <div class="inline-flex w-full items-center overflow-hidden {BORDER_STYLE} focus-within:ring-1 px-2 gap-2 focus-within:ring-blue-600 focus-within:border-blue-600 transition-all">
+    <div class="inline-flex w-full items-center overflow-hidden {BORDER_STYLE} {ACCENT_PALETTES.blue.focusRing} px-2 gap-2 transition-all">
       
       {#if singleSearch.searchMode === 'semantic'}
         <MyDropdown items={MODEL_OPTIONS} bind:value={singleSearch.modelSemantic} accent="blue"/>
       {:else if singleSearch.searchMode === 'transcript'}
         <MyCheckbox label="Exact" bind:checked={singleSearch.isTranscriptExact}/>
-        {#if singleSearch.isTranscriptExact}
-          <MyCheckbox label="Phrase" bind:checked={singleSearch.isSearchPhrase}/>
-        {/if}
+      {/if}
+      {#if singleSearch.isTranscriptExact || singleSearch.searchMode === 'ocr'}
+        <MyCheckbox label="Phrase" bind:checked={singleSearch.isSearchPhrase}/>
       {/if}
       <input
         class="h-10 min-w-0 flex-1 px-2 bg-transparent text-lg font-medium text-slate-900 placeholder:text-slate-400 outline-none"
-        placeholder="Query: 'person riding a red bicycle'..."
+        placeholder={MODE_OPTIONS.find((o) => o.value === singleSearch.searchMode)?.search_placeholder}
         bind:value={singleSearch.query}
         onkeydown={handleKeyDown}
       />
     </div>
 
-    <!-- Filter Drawer -->
+    <!-- Filter Drawer Toggle -->
     <Toggle.Root
       pressed={singleSearch.showFilterDrawer}
       onPressedChange={(p) => (singleSearch.showFilterDrawer = p)}
       class="flex h-11 w-11 shrink-0 items-center justify-center {BORDER_STYLE} bg-slate-50 hover:bg-blue-100 text-slate-600 active:scale-[0.95] transition-all"
       title="Toggle Filters"
     >
-      <Gear class="size-lg" weight="bold"/>
+      <SlidersHorizontalIcon size="24px" weight="regular"/>
     </Toggle.Root>
 
     <!-- Submit Button -->
     <button
       type="submit"
       disabled={singleSearch.isSearching}
+      onclick={() => singleSearch.handleSearch()}
       class="flex h-11 w-11 shrink-0 items-center justify-center {BORDER_STYLE} bg-blue-600 text-white hover:bg-blue-700 outline-none active:scale-[0.95] transition-all"
     >
       {#if singleSearch.isSearching}
         <span class="h-4 w-4 animate-spin border-2 border-white border-t-transparent"></span>
       {:else}
-        <MagnifyingGlass class="size-lg" weight="bold"/>
+        <MagnifyingGlassIcon size="24px" weight="regular"/>
       {/if}
     </button>
     
@@ -84,58 +113,71 @@
 
   <!-- Filter Drawer Content -->
   {#if singleSearch.showFilterDrawer}
-    <div class="mt-3 flex items-center gap-4 border border-slate-200 bg-slate-50 p-3 text-xs font-semibold text-slate-700 shadow-sm animate-fadeIn">
-      <label class="flex items-center gap-2">
-        <span>Result Limit:</span>
-        <input
-          type="number"
-          class="w-24 border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-          bind:value={singleSearch.limit}
-          min="1"
-          max="1000"
-        />
-      </label>
+    <div class="mx-2 mb-2 flex items-left gap-2 p-3 {BORDER_STYLE} bg-slate-50 text-xs font-semibold text-slate-700 shadow-sm transition-all">
+      {#if singleSearch.searchMode === 'video_id'}
+        <MyInputbox type="number" label="Start time (ms)" bind:value={singleSearch.videoStartMs} width="w-1/2" height="h-10" accent="blue" layout="horizontal"/>
+        <MyInputbox type="number" label="End time (ms)" bind:value={singleSearch.videoEndMs} width="w-1/2" height="h-10" accent="blue" layout="horizontal"/>
+      {:else}
+        <MyInputbox type="number" label="Limit" bind:value={singleSearch.limit} min="1" max="1000" width="w-1/8" height="h-10" accent="blue" layout="horizontal"/>
+        <MyInputbox type="text" label="Exclusion" bind:value={singleSearch.exclusion} width="w-5/8" height="h-10" accent="blue" layout="horizontal"/>
+        <MyInputbox type="text" label="Similar frame" bind:value={singleSearch.similarFrame} width="w-2/8" height="h-10" accent="blue" layout="horizontal" disabled={true}/>
+      {/if}
     </div>
   {/if}
 
-  <!-- Results Content Area -->
-  <div class="flex flex-1 p-4 flex-col justify-between">
+  <!-- Results Area -->
+  <div class="flex flex-1 p-2 flex-col justify-between">
     <div>
       {#if singleSearch.errorMessage}
-        <div class="mb-4 border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800 shadow-sm">
+        <div class="mb-4 {BORDER_STYLE} bg-rose-100 p-4 text-sm font-semibold text-rose-800">
           Error: {singleSearch.errorMessage}
         </div>
       {/if}
-
-      <div class="mb-3 flex items-center justify-between text-xs font-semibold text-slate-500 select-none">
+      
+      <!-- Head: total & pagination -->
+      <div class="mb-3 flex items-center justify-between text-sm font-semibold text-slate-500 select-none">
         <span>Total Results: {singleSearch.results.length}</span>
         {@render paginationControl()}
       </div>
 
+      <!-- Results Grid -->
       {#if singleSearch.results.length === 0 && !singleSearch.isSearching}
         <div class="flex h-64 flex-col items-center justify-center text-slate-400 opacity-60 select-none">
           <p class="text-sm font-semibold">No results.</p>
         </div>
       {:else}
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {#each singleSearch.paginatedResults as item}
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {#each singleSearch.paginatedResults as item (
+            `${item.video_id}:${item.keyframe_id}`
+          )}
             <KeyframeCard
               {item}
-              onWatchVideo={(item) => {
-                console.log('Watch video', item);
+              watchVideo={openVideo}
+              excludeVideo={(videoId) => {
+                singleSearch.exclusion = [
+                  ...singleSearch.exclusionArray,
+                  videoId
+                ].join(', ');
               }}
+              setSimilarFrame={(videoId, keyframeId) =>
+                singleSearch.handleSimilarFrame(videoId, keyframeId)}
             />
           {/each}
         </div>
       {/if}
     </div>
-
-    <!-- Pagination -->
-    <div class="border-slate-200 mt-8 flex justify-center">
-      {@render paginationControl()}
-    </div>
+  </div>
+  <!-- Pagination -->
+  <div class="flex justify-center mt-2 pb-6">
+    {@render paginationControl()}
   </div>
 </div>
+
+<VideoDialog
+  bind:open={videoDialogOpen}
+  item={selectedVideo}
+  onOpenChange={handleVideoDialogChange}
+/>
 
 {#snippet paginationControl()}
   {#if singleSearch.results.length > singleSearch.pageSize}

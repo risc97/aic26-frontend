@@ -1,23 +1,24 @@
 <script lang="ts">
   import { Checkbox } from "bits-ui";
+  import { BORDER_STYLE, ACCENT_PALETTES } from "./CommonStyle";
   import Check from "phosphor-svelte/lib/Check";
 
   const ACCENT_STYLES = {
     blue: {
-      strong: "text-sm text-white bg-blue-500 hover:bg-blue-500/80",
-      subtle: "text-xs text-blue-700 bg-blue-100/80 hover:bg-blue-200/80",
+      strong: `text-sm text-white ${ACCENT_PALETTES.blue.bg} ${ACCENT_PALETTES.blue.hover}`,
+      subtle: `text-xs text-slate-700 ${ACCENT_PALETTES.blue.bgSubtle} ${ACCENT_PALETTES.blue.hoverSubtle}`,
     },
     rose: {
-      strong: "text-sm text-white bg-rose-500 hover:bg-rose-500/80",
-      subtle: "text-xs text-rose-700 bg-rose-100/80 hover:bg-rose-200/80",
+      strong: `text-sm text-white ${ACCENT_PALETTES.rose.bg} ${ACCENT_PALETTES.rose.hover}`,
+      subtle: `text-xs text-slate-700 ${ACCENT_PALETTES.rose.bgSubtle} ${ACCENT_PALETTES.rose.hoverSubtle}`,
     },
     emerald: {
-      strong: "text-sm text-white bg-emerald-500 hover:bg-emerald-500/80",
-      subtle: "text-xs text-emerald-700 bg-emerald-100/80 hover:bg-emerald-200/80",
+      strong: `text-sm text-white ${ACCENT_PALETTES.emerald.bg} ${ACCENT_PALETTES.emerald.hover}`,
+      subtle: `text-xs text-slate-700 ${ACCENT_PALETTES.emerald.bgSubtle} ${ACCENT_PALETTES.emerald.hoverSubtle}`,
     },
     amber: {
-      strong: "text-sm text-white bg-amber-500 hover:bg-amber-500/80",
-      subtle: "text-xs text-amber-800 bg-amber-100/80 hover:bg-amber-200/80",
+      strong: `text-sm text-white ${ACCENT_PALETTES.amber.bg} ${ACCENT_PALETTES.amber.hover}`,
+      subtle: `text-xs text-slate-700 ${ACCENT_PALETTES.amber.bgSubtle} ${ACCENT_PALETTES.amber.hoverSubtle}`,
     },
   };
 
@@ -48,17 +49,17 @@
 
 <label
   for={id}
-  class="inline-flex {accentClass} {height} cursor-pointer select-none items-center gap-1.5 rounded border-2 border-slate-900 px-1.5 font-semibold transition-colors focus-within:ring-2 focus-within:ring-slate-900/20 {disabled ? 'cursor-not-allowed opacity-50' : ''} {className}"
+  class="inline-flex {accentClass} {height} cursor-pointer select-none items-center gap-1.5 {BORDER_STYLE} px-1.5 font-semibold transition-colors focus-within:ring-2 focus-within:ring-slate-900/20 {disabled ? 'cursor-not-allowed opacity-50' : ''} {className}"
 >
   <Checkbox.Root
     {id}
     bind:checked
     {disabled}
-    class="flex size-3 shrink-0 items-center justify-center rounded-[3px] border border-slate-700 bg-white transition-colors focus-visible:outline-none"
+    class="flex size-3 shrink-0 items-center justify-center border rounded bg-white transition-colors focus-visible:outline-none"
   >
   {#if checked}
     <div class="text-background inline-flex items-center justify-center">
-      <Check class="size-sm" weight="bold" />
+      <Check weight="bold"/>
     </div>
   {/if}
   </Checkbox.Root>

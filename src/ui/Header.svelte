@@ -2,6 +2,8 @@
   import { config } from '../lib/config.svelte';
   import { Tabs, Tooltip } from "bits-ui";
   import { mockConfig } from '../lib/mock.svelte';
+  import { BORDER_STYLE, ACCENT_PALETTES } from './common/CommonStyle';
+  import { CpuIcon, GearIcon } from 'phosphor-svelte';
 
   interface HeaderProps {
     onOpenConfigModal: () => void;
@@ -16,11 +18,10 @@
   // Dynamically change logo background based on active mode
   let logoBg = $derived.by(() => {
     switch (mode) {
-      case 'single': return 'bg-blue-600';
-      case 'multiple': return 'bg-rose-600';
-      case 'submit': return 'bg-emerald-600';
-      case 'logs': return 'bg-amber-500';
-      default: return 'bg-neutral-900';
+      case 'single': return ACCENT_PALETTES.blue.bg;
+      case 'multiple': return ACCENT_PALETTES.rose.bg;
+      case 'submit': return ACCENT_PALETTES.emerald.bg;
+      case 'logs': return ACCENT_PALETTES.amber.bg;
     }
   });
 
@@ -34,11 +35,10 @@
   function getActiveColorClass(m: string, active: boolean) {
     if (!active) return 'bg-transparent text-slate-700 hover:bg-slate-200';
     switch (m) {
-      case 'single': return 'bg-blue-600 text-white';
-      case 'multiple': return 'bg-rose-600 text-white';
-      case 'submit': return 'bg-emerald-600 text-white';
-      case 'logs': return 'bg-amber-500 text-white';
-      default: return 'bg-neutral-900 text-white';
+      case 'single': return `${ACCENT_PALETTES.blue.bg} text-white`;
+      case 'multiple': return `${ACCENT_PALETTES.rose.bg} text-white`;
+      case 'submit': return `${ACCENT_PALETTES.emerald.bg} text-white`;
+      case 'logs': return `${ACCENT_PALETTES.amber.bg} text-white`;
     }
   }
 </script>
@@ -48,10 +48,8 @@
 
     <!-- Left: Brand -->
     <div class="flex shrink-0 items-center gap-2">
-      <div class={`flex h-11 w-11 shrink-0 items-center justify-center border-2 border-neutral-900 text-white transition-colors duration-200 ${logoBg}`}>
-        <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24">
-          <path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 2v14h16V5H4zm2 2h2v2H6V7zm4 0h8v2h-8V7zm-4 4h2v2H6v-2zm4 0h8v2h-8v-2zm-4 4h2v2H6v-2zm4 0h8v2h-8v-2z"/>
-        </svg>
+      <div class={`flex h-11 w-11 shrink-0 items-center justify-center ${BORDER_STYLE} text-white transition-colors duration-200 ${logoBg}`}>
+        <CpuIcon size="24px"/>
       </div>
       <h1 class="text-xl font-bold tracking-tight text-slate-900">CISC97</h1>
     </div>
@@ -114,7 +112,7 @@
             onclick={onOpenConfigModal}
             class="flex h-9 w-9 items-center justify-center border-2 border-neutral-900 bg-white text-slate-700 hover:bg-slate-100 outline-none"
           >
-            ⚙️
+            <GearIcon size="16px" weight="bold"/>
           </Tooltip.Trigger>
           <Tooltip.Content class="z-50 border-2 border-neutral-900 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
             API Request Configuration

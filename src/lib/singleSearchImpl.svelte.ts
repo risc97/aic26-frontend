@@ -12,10 +12,12 @@ class SingleSearchStore {
   isTranscriptExact = $state(false);
   isSearchPhrase = $state(false);
   similarFrame = $state("");
-  excluded = $state<string[]>([]);
-  videoStartMs = $state<number | null>(null);
-  videoEndMs = $state<number | null>(null);
+  exclusion = $state<string>("");
+  videoStartMs = $state<number | undefined>(undefined);
+  videoEndMs = $state<number | undefined>(undefined);
   readonly modelTranscriptSemantic = 'gte';
+
+  exclusionArray = $derived(this.exclusion.split(',').map(s => s.trim()).filter(s => s.length > 0));
 
   // Pagination state
   currentPage = $state(1);
@@ -33,8 +35,9 @@ class SingleSearchStore {
   private resultSimilar = $state<Item[] | TranscriptItem[] | OcrItem[]>([]);
   private resultActive = $derived(this.similarFrame === "" ? this.resultRaw : this.resultSimilar);
   get results() {
+    // $inspect(this.exclusionArray);
     return this.resultActive.filter(r => {
-      for (const exclusion of this.excluded) {
+      for (const exclusion of this.exclusionArray) {
         if (exclusion.includes('-')) {
           // Format: "video_id-keyframe_id" -> filter just that specific keyframe
           const lastHyphenIndex = exclusion.lastIndexOf('-');

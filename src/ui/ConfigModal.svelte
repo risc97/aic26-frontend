@@ -16,7 +16,7 @@
     <Dialog.Content class="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 border-2 border-neutral-900 bg-white p-6 shadow-xl">
       <Dialog.Title class="text-lg font-bold">Configuration</Dialog.Title>
 
-      <div class="flex items-center space-x-2 my-4">
+      <div class="flex items-center space-x-2 my-4  pointer-events-none opacity-50 select-none cursor-not-allowed">
         <input type="checkbox" id="mock-mode" bind:checked={mockConfig.enabled} class="rounded border-gray-700" />
         <label for="mock-mode" class="text-sm font-medium">Enable Testing mode</label>
       </div>
