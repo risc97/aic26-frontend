@@ -1,58 +1,54 @@
 <script lang="ts">
+  import type { Component } from 'svelte';
   import type { Item } from '../lib/types';
-  import { ApiClient } from '../lib/api';
+  import { apiClient } from '../lib/api';
   import {
     ACCENT_PALETTES,
     BORDER_STYLE,
-    BORDER_STYLE_LIGHT
+    BORDER_STYLE_LIGHT,
+    type AccentColor
   } from './common/CommonStyle';
+    import { DropdownMenu } from 'bits-ui';
+    import { DotsThreeVerticalIcon } from 'phosphor-svelte';
 
   type CardItem = Item & {
-    transcriptText?: string;
-    ocrText?: string;
+    text?: string;
+  };
+
+  type CardAction = {
+    id: string;
+    label: string;
+    icon?: Component;
+    class: string;
+    run: (item: CardItem) => void;
   };
 
   interface Props {
     item: CardItem;
-    stageIndex?: number;
-    qaEnabled?: boolean;
-    qaAnswer?: string;
-    variant?: 'single' | 'sequence' | 'events' | 'assigned';
-    stages?: unknown[];
-    assign?: (item: CardItem, index: number) => void;
-    assignedStageId?: number | null;
-    isSelected?: boolean;
-    added?: boolean;
-    addedOrder?: number;
-    excluded?: boolean;
-    choose?: (item: CardItem, answer?: string) => void;
-    addToList?: (item: CardItem) => void;
-    excludeVideo?: (videoId: string) => void;
-    setSimilarFrame?: (videoId: string, keyframeId: string) => void;
+    type: 'single' | 'multiple';
+    mode: 'semantic' | 'transcript' | 'ocr' | 'video_id';
+    qaEnabled: boolean;
+    qaAnswer: string;
+    actions?: CardAction[];
+    add?: (item: CardItem, answer?: string) => void;
+    addTop?: (item: CardItem, answer?: string) => void;
     watchVideo?: (item: CardItem) => void;
   }
 
   let {
     item,
-    stageIndex = 0,
+    type = 'single',
+    mode = 'semantic',
     qaEnabled = false,
     qaAnswer = $bindable(''),
-    variant = 'single',
-    stages = [],
-    assign = () => {},
-    assignedStageId = null,
-    isSelected = false,
-    added = false,
-    addedOrder = 0,
-    excluded = false,
-    choose,
-    addToList,
-    excludeVideo = () => {},
-    setSimilarFrame = () => {},
+    actions,
+    add = () => {},
+    addTop = () => {},
     watchVideo = () => {}
   }: Props = $props();
 
-  const api = new ApiClient();
+  // Appearance
+  let accentPalette = $derived(type === 'single' ? ACCENT_PALETTES.blue : ACCENT_PALETTES.rose);
 
   // Derived values stay synchronized when Svelte reuses this component
   // for a different result item.
@@ -66,38 +62,16 @@
     resolvedScore === undefined ? 'N/A' : resolvedScore.toFixed(4)
   );
 
-  let hasKeyframe = $derived(
-    Boolean(
-      keyframeId &&
-        keyframeId !== '0' &&
-        keyframeId !== '' &&
-        keyframeId !== 'undefined'
-    )
-  );
-
-  let frameLabel = $derived(
-    hasKeyframe ? `Frame #${frameIndex ?? keyframeId}` : 'None'
-  );
-
-  let thumbnailUrl = $derived(
-    hasKeyframe ? api.getKeyframeImageUrl(videoId, keyframeId) : ''
-  );
-
-  let displayTime = $derived(formatTime(timestampMs, hasKeyframe, keyframeId));
+  let displayTime = $derived(formatTime(timestampMs, keyframeId));
 
   let isImageError = $state(false);
   let isOcrExpanded = $state(false);
   let isTranscriptExpanded = $state(false);
   let moved = $state(false);
 
-  const cardBorder = BORDER_STYLE;
-  const metadataBorder = BORDER_STYLE_LIGHT;
-  const bluePalette = ACCENT_PALETTES.blue;
-  const rosePalette = ACCENT_PALETTES.rose;
 
   function formatTime(
     milliseconds: number | undefined,
-    hasFrame: boolean,
     frameId: string
   ) {
     if (milliseconds !== undefined && milliseconds !== null) {
@@ -110,146 +84,134 @@
         .padStart(2, '0')}`;
     }
 
-    return hasFrame ? `Frame ${frameId}` : 'N/A';
-  }
-
-  function handleMoveToTop() {
-    choose?.(item, qaAnswer);
-    moved = true;
-
-    setTimeout(() => {
-      moved = false;
-    }, 1200);
-  }
-
-  function handleAssign(index: number) {
-    assign(item, index);
+    return `Frame ${frameId}`;
   }
 </script>
 
-<article class={`group flex h-full flex-col overflow-hidden ${cardBorder}`}>
+<article class="flex h-full flex-col overflow-hidden {BORDER_STYLE} {accentPalette.hoverSubtle} {accentPalette.bgSubtle} transition-all">
+  <!-- Watch video trigger -->
   <button
     type="button"
-    class="relative aspect-video w-full overflow-hidden border-b-2 border-slate-900 bg-slate-100 text-left"
+    class="group/video relative aspect-video w-full overflow-hidden"
     onclick={() => watchVideo(item)}
     title={`Watch video ${videoId}`}
   >
-    {#if hasKeyframe && !isImageError && thumbnailUrl}
-      <img
-        src={thumbnailUrl}
-        alt={`Frame ${keyframeId} from ${videoId}`}
-        class={`h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:scale-105 ${
-          excluded ? 'opacity-40 grayscale' : ''
-        }`}
-        loading="lazy"
-        onerror={() => (isImageError = true)}
-      />
-    {:else}
-      <div class="flex h-full w-full items-center justify-center bg-slate-200 text-xs font-bold text-slate-500">
-        No Keyframe
-      </div>
-    {/if}
+    <img
+      src={apiClient.getKeyframeImageUrl(videoId, keyframeId)}
+      alt={`Frame ${keyframeId} from ${videoId}`}
+      class={"h-full w-full object-cover"}
+      loading="lazy"
+      onerror={() => (isImageError = true)}
+    />
 
-    <span class="absolute inset-x-0 bottom-0 bg-slate-950/65 px-2 py-1 text-center text-xs font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">
-      Watch Video
+    <span class="absolute inset-x-0 bottom-0 bg-slate-900/65 px-2 py-1 text-center text-xs font-bold text-white opacity-0 transition-opacity group-hover/video:opacity-100">
+      Watch
     </span>
-
-    {#if assignedStageId !== null && !isSelected}
-      <span class="absolute left-1.5 top-1.5 border-2 border-slate-900 bg-rose-700 px-1.5 py-0.5 text-[9px] font-bold text-white">
-        E{assignedStageId + 1}
-      </span>
-    {/if}
   </button>
 
   <div class="flex flex-1 flex-col gap-1 p-2 text-slate-700">
-    <div class="flex items-center justify-between gap-1.5">
-      <div class="flex min-w-0 items-center gap-1.5">
-        <span
-          class="min-w-0 truncate border-2 border-slate-900 bg-blue-100 px-1 py-0.5 font-mono text-base font-bold text-blue-950"
-          title={videoId}
-        >
-          {videoId}
-        </span>
+    <div class="flex items-center justify-between gap-2">
 
+      <!-- Video ID & Hover Keyframe ID -->
+      <div class="flex">
         <span
-          class="truncate font-mono text-sm font-bold text-slate-700"
-          title={frameLabel}
+          class="group/id {BORDER_STYLE} truncate p-1 font-mono text-xl font-bold {accentPalette.textDark}"
+          title={`${videoId}-${keyframeId}`}
         >
-          {frameLabel}
+          {videoId}<span class="hidden group-hover/id:inline">-{keyframeId}</span>
         </span>
       </div>
 
-      <div class="flex shrink-0 items-center gap-1.5">
-        <button
-          type="button"
-          class={`flex h-7 w-7 items-center justify-center border-2 border-slate-900 ${rosePalette.bgSubtle} ${rosePalette.text} ${rosePalette.hoverSubtle} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600`}
-          onclick={() => excludeVideo(videoId)}
-          title={`Exclude video ${videoId}`}
-          aria-label={`Exclude video ${videoId}`}
-        >
-          🗑
-        </button>
-
-        {#if hasKeyframe}
-          <button
-            type="button"
-            class={`flex h-7 w-7 items-center justify-center border-2 border-slate-900 ${bluePalette.bgSubtle} ${bluePalette.text} ${bluePalette.hoverSubtle} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600`}
-            onclick={() => setSimilarFrame(videoId, keyframeId)}
-            title={`Find frames similar to ${videoId}-${keyframeId}`}
-            aria-label={`Find similar frames for ${videoId}-${keyframeId}`}
+      <!-- Option -->
+      <div class="flex shrink-0 items-center gap-2">
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
+            class="flex h-7 w-7 items-center justify-center {BORDER_STYLE} bg-slate-100 text-slate-700 hover:bg-slate-200"
+            aria-label="Card actions"
           >
-            <span class="font-mono text-sm font-bold leading-none">~</span>
-          </button>
-        {/if}
+            <DotsThreeVerticalIcon size="18px" weight="bold" />
+          </DropdownMenu.Trigger>
+
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              class="z-50 min-w-40 {BORDER_STYLE} bg-slate-100 p-1 shadow-2xl"
+              preventScroll={false}
+              side="bottom"
+              align="end"
+              sideOffset={2}
+            >
+              {#each actions as action (action.id)}
+                {@const Icon = action.icon}
+
+                <DropdownMenu.Item
+                  textValue={action.label}
+                  onSelect={() => action.run(item)}
+                  class="flex items-center gap-1 px-1 py-1 select-none text-sm data-highlighted:outline-none {action.class}"
+                >
+                  {#if Icon}
+                    <Icon size="14px" />
+                  {/if}
+
+                  <span>{action.label}</span>
+                </DropdownMenu.Item>
+              {/each}
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
       </div>
     </div>
 
-    <div class="flex items-center justify-between gap-1.5 font-mono text-sm text-slate-700">
+    <!-- Info -->
+    <div class="flex items-center justify-between gap-2 font-mono text-sm text-slate-700">
       {#if resolvedScore !== undefined}
-        <span class="shrink-0 border-2 border-slate-900 bg-amber-100 px-1.5 py-0.5 text-sm font-bold text-amber-900">
-          Score: <span class="font-mono">{formattedScore}</span>
+        <span class="shrink-0 {BORDER_STYLE} bg-amber-100 p-0.5 text-sm font-bold font-mono text-amber-900">
+          S: {formattedScore}
         </span>
-      {:else}
-        <span></span>
       {/if}
 
-      <span class="ml-auto shrink-0 font-mono text-sm font-bold text-slate-600">
-        {displayTime}
+      <span class="shrink-0 {BORDER_STYLE} p-0.5 font-mono text-sm {accentPalette.textDark}">
+        F: #{frameIndex}
       </span>
+
+      <div class="shrink-0 {BORDER_STYLE} p-0.5 font-mono text-sm font-bold {accentPalette.textDark}">
+        {displayTime}
+      </div>
     </div>
 
-    {#if item.transcriptText}
+    <!-- Transcript  -->
+    {#if mode === 'transcript' && item.text}
       <div class="border-2 border-slate-900 bg-blue-50 px-1.5 py-1">
         <button
           type="button"
           class="flex w-full items-center justify-between text-sm font-bold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
           onclick={() => (isTranscriptExpanded = !isTranscriptExpanded)}
         >
-          <span>💬 Transcript</span>
-          <span class="text-[10px] font-medium text-slate-500">
+          <span class="select-none">💬 Transcript</span>
+          <span class="text-sm font-medium text-slate-500">
             {isTranscriptExpanded ? 'Collapse' : 'Expand'}
           </span>
         </button>
 
         <div
-          class={`whitespace-pre-wrap text-sm italic text-blue-950 ${
+          class={`whitespace-pre-wrap text-sm text-blue-950 ${
             isTranscriptExpanded ? 'mt-1' : 'line-clamp-2'
           }`}
         >
-          "{item.transcriptText}"
+          "{item.text}"
         </div>
       </div>
     {/if}
 
-    {#if item.ocrText}
+    <!-- OCR -->
+    {#if mode === 'ocr' && item.text}
       <div class="border-2 border-slate-900 bg-sky-50 px-1.5 py-1">
         <button
           type="button"
           class="flex w-full items-center justify-between text-sm font-bold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
           onclick={() => (isOcrExpanded = !isOcrExpanded)}
         >
-          <span>🔍 OCR Match</span>
-          <span class="text-[10px] font-medium text-slate-500">
+          <span class="select-none">🔍 OCR Match</span>
+          <span class="text-sm font-medium text-slate-500">
             {isOcrExpanded ? 'Collapse' : 'Expand'}
           </span>
         </button>
@@ -259,13 +221,13 @@
             isOcrExpanded ? 'mt-1' : 'line-clamp-2'
           }`}
         >
-          {item.ocrText}
+          {item.text}
         </div>
       </div>
     {/if}
 
     {#if qaEnabled}
-      <div class="border-t-2 border-slate-900/10 pt-1">
+      <div class="{BORDER_STYLE}pt-1">
         <label class="mb-1 block text-sm text-slate-500" for={`answer-${videoId}-${keyframeId}`}>
           Answer:
         </label>
@@ -280,50 +242,27 @@
       </div>
     {/if}
 
-    {#if variant === 'single' && choose}
+    {#if type === 'single'}
       <div class="mt-auto flex gap-1.5 pt-1.5">
         <button
           type="button"
-          class={`flex flex-1 items-center justify-center border-2 border-slate-900 py-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+          class={`flex flex-1 items-center justify-center ${BORDER_STYLE} py-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
             moved
               ? 'bg-blue-700 text-white'
               : 'bg-white text-slate-700 hover:bg-slate-50'
           }`}
-          onclick={handleMoveToTop}
+          onclick={() =>{}}
         >
           {moved ? 'Moved' : 'Move to top'}
         </button>
 
         <button
           type="button"
-          class={`flex flex-1 items-center justify-center border-2 border-slate-900 py-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-            added
-              ? 'bg-emerald-500 text-white'
-              : 'bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
-          }`}
-          onclick={() => addToList?.(item)}
+          class={`flex flex-1 items-center justify-center ${BORDER_STYLE} py-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 'bg-emerald-500 bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700`}
+          onclick={() => {}}
         >
-          {added ? `#${addedOrder}` : 'Add'}
+          Add to list
         </button>
-      </div>
-    {/if}
-
-    {#if (variant === 'events' || variant === 'assigned') && stages.length > 0}
-      <div class="mt-auto flex gap-1.5 pt-1.5">
-        {#each stages as _, index}
-          <button
-            type="button"
-            class={`flex-1 border-2 border-slate-900 py-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 ${
-              assignedStageId === index
-                ? 'bg-rose-700 text-white'
-                : 'bg-rose-100 text-rose-900 hover:bg-rose-200'
-            }`}
-            onclick={() => handleAssign(index)}
-            title={`Assign to E${index + 1}`}
-          >
-            E{index + 1}
-          </button>
-        {/each}
       </div>
     {/if}
   </div>

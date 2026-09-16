@@ -1,5 +1,5 @@
 import { ApiClient } from './api';
-import type { Item, TranscriptItem, OcrItem, EmbeddingModel } from './types';
+import type { Item, TranscriptItem, OcrItem, EmbeddingModel, TranscriptFlatItem } from './types';
 
 const api = new ApiClient();
 
@@ -7,35 +7,39 @@ class SingleSearchStore {
   // Search parameters & state
   query = $state('');
   limit = $state(100);
-  searchMode = $state('semantic'); // 'semantic' | 'transcript' | 'ocr' | 'video_id'
+  searchMode = $state<'semantic' | 'transcript' | 'ocr' | 'video_id'>('semantic');
   modelSemantic = $state<EmbeddingModel>('siglip'); // 'siglip' | 'siglip2' | 'pe'
   isTranscriptExact = $state(false);
   isSearchPhrase = $state(false);
   similarFrame = $state("");
   exclusion = $state<string>("");
-  videoStartMs = $state<number | undefined>(undefined);
-  videoEndMs = $state<number | undefined>(undefined);
+  videoStartMs = $state<number | null>(null);
+  videoEndMs = $state<number | null>(null);
   readonly modelTranscriptSemantic = 'gte';
 
   exclusionArray = $derived(this.exclusion.split(',').map(s => s.trim()).filter(s => s.length > 0));
 
   // Pagination state
   currentPage = $state(1);
-  pageSize = $state(48);
+  readonly pageSize = 25;
 
   // Loading state
   isSearching = $state(false);
   errorMessage = $state<string | null>(null);
 
+  // QA state
+  qaEnabled = $state(false);
+  qaAnswer = $state<string>('');
+
   // UI state
   showFilterDrawer = $state(false);
 
   // Results 
-  private resultRaw = $state<Item[] | TranscriptItem[] | OcrItem[]>([]);
-  private resultSimilar = $state<Item[] | TranscriptItem[] | OcrItem[]>([]);
+  private resultRaw = $state<Item[] | TranscriptFlatItem[] | OcrItem[]>([]);
+  private resultSimilar = $state<Item[] | TranscriptFlatItem[] | OcrItem[]>([]);
   private resultActive = $derived(this.similarFrame === "" ? this.resultRaw : this.resultSimilar);
   get results() {
-    // $inspect(this.exclusionArray);
+    if(this.searchMode === 'video_id') return this.resultActive;
     return this.resultActive.filter(r => {
       for (const exclusion of this.exclusionArray) {
         if (exclusion.includes('-')) {
@@ -67,6 +71,24 @@ class SingleSearchStore {
     this.results.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
   );
 
+  flattenTranscripts(transcripts: TranscriptItem[]): TranscriptFlatItem[] {
+    return transcripts.flatMap((transcript) =>
+      transcript.keyframes.map((keyframe) => ({
+        video_id: transcript.video_id,
+        transcript_id: transcript.transcript_id,
+        text: transcript.text,
+        time_start_ms: transcript.time_start_ms,
+        time_end_ms: transcript.time_end_ms,
+
+        keyframe_id: keyframe.keyframe_id,
+        timestamp_ms: keyframe.timestamp_ms,
+        frame_idx: keyframe.frame_idx,
+        video_fps: keyframe.video_fps,
+        score: keyframe.score,
+      }))
+    );
+  }
+
   async handleSearch() {
     this.isSearching = true;
     this.errorMessage = null;
@@ -92,7 +114,8 @@ class SingleSearchStore {
           limit: Number(this.limit),
           model: 'gte',
         });
-        this.resultRaw = res.results ?? [];
+        
+        this.resultRaw = this.flattenTranscripts(res.results ?? []);
       } else if (this.searchMode === 'ocr') {
         const res = await api.queryOcr({
           query: this.query,

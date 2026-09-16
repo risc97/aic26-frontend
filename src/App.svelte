@@ -21,7 +21,7 @@
     {#if mode === 'single'}
       <SingleSearch />
     {:else if mode === 'multiple'}
-      <!-- Temporal mode view placeholder -->
+      <MultipleSearch />
     {:else if mode === 'submit'}
       <!-- Review mode view placeholder -->
     {:else if mode === 'logs'}

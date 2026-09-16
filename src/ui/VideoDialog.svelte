@@ -29,7 +29,7 @@
 
 <Dialog.Root {open} {onOpenChange}>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity" />
+    <Dialog.Overlay class="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm transition-opacity" />
     <Dialog.Content class="fixed left-1/2 top-1/2 z-50 w-full max-w-3xl -translate-x-1/2 -translate-y-1/2 border-2 border-neutral-900 bg-white p-6 shadow-xl focus:outline-none">
       <div class="flex items-center justify-between border-b-2 border-neutral-900 pb-3 mb-4">
         <Dialog.Title class="font-mono text-lg font-bold text-slate-900">

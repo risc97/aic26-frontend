@@ -7,7 +7,9 @@
     ScanIcon,
     TelevisionIcon,
     MagnifyingGlassIcon,
-    SlidersHorizontalIcon
+    SlidersHorizontalIcon,
+    TrashIcon,
+    TildeIcon,
   } from 'phosphor-svelte';
   import { BORDER_STYLE, ACCENT_PALETTES } from './common/CommonStyle';
   import MyDropdown from './common/MyDropdown.svelte';
@@ -15,6 +17,7 @@
   import MyInputbox from './common/MyInputbox.svelte';
   import KeyframeCard from './KeyframeCard.svelte';
   import VideoDialog from './VideoDialog.svelte';
+  import type { Item } from '../lib/types';
 
   const MODE_OPTIONS = [
     { value: 'semantic', label: 'Semantic', icon: SparkleIcon, search_placeholder: "Query: 'person riding a red bicycle'..." },
@@ -95,7 +98,7 @@
       <SlidersHorizontalIcon size="24px" weight="regular"/>
     </Toggle.Root>
 
-    <!-- Submit Button -->
+    <!-- Search Button -->
     <button
       type="submit"
       disabled={singleSearch.isSearching}
@@ -147,20 +150,48 @@
         </div>
       {:else}
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {#each singleSearch.paginatedResults as item (
-            `${item.video_id}:${item.keyframe_id}`
+          {#each singleSearch.paginatedResults as item, index (
+            `${item.video_id}-${item.keyframe_id}-${index}`    // Key the card
           )}
             <KeyframeCard
               {item}
+              type="single"
+              mode={singleSearch.searchMode}
+              qaEnabled={singleSearch.qaEnabled}
+              qaAnswer={singleSearch.qaAnswer}
               watchVideo={openVideo}
-              excludeVideo={(videoId) => {
-                singleSearch.exclusion = [
-                  ...singleSearch.exclusionArray,
-                  videoId
-                ].join(', ');
-              }}
-              setSimilarFrame={(videoId, keyframeId) =>
-                singleSearch.handleSimilarFrame(videoId, keyframeId)}
+              actions={[
+                {
+                  id: 'exclude-vid',
+                  label: 'Exclude video',
+                  icon: TrashIcon,
+                  class: 'text-rose-700 hover:bg-rose-100 hover:text-rose-900',
+                  run: (currentItem) => {
+                    singleSearch.exclusion = `${singleSearch.exclusion},${currentItem.video_id}`;
+                  }
+                },
+                {
+                  id: 'exclude-frame',
+                  label: 'Exclude frame',
+                  icon: TrashIcon,
+                  class: 'text-rose-700 hover:bg-rose-100 hover:text-rose-900',
+                  run: (currentItem) => {
+                    singleSearch.exclusion = `${singleSearch.exclusion},${currentItem.video_id}-${currentItem.keyframe_id}`;
+                  }
+                },
+                {
+                  id: 'similar',
+                  label: 'Similar keyframes',
+                  icon: TildeIcon,
+                  class: 'text-blue-700 hover:bg-blue-100 hover:text-blue-900',
+                  run: (currentItem) => {
+                    singleSearch.handleSimilarFrame(
+                      currentItem.video_id,
+                      currentItem.keyframe_id
+                    );
+                  }
+                }
+              ]}
             />
           {/each}
         </div>
@@ -184,8 +215,7 @@
   <Pagination.Root
     count={singleSearch.results.length}
     perPage={singleSearch.pageSize}
-    page={singleSearch.currentPage}
-    onPageChange={(p) => (singleSearch.currentPage = p)}
+    bind:page={singleSearch.currentPage}
   >
     {#snippet children({ pages, range })}
       <div class="flex items-center gap-2">

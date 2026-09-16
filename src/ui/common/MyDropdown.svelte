@@ -11,7 +11,7 @@
 
   const ACCENT_STYLES = {
     blue: {
-      strong: `text-sm font-sans font-semibold font-semibold text-white ${ACCENT_PALETTES.blue.bg} ${ACCENT_PALETTES.blue.hover}`,
+      strong: `text-sm font-sans font-semibold text-white ${ACCENT_PALETTES.blue.bg} ${ACCENT_PALETTES.blue.hover}`,
       subtle: `text-xs font-mono font-semibold text-slate-900 ${ACCENT_PALETTES.blue.bgSubtle} ${ACCENT_PALETTES.blue.hoverSubtle}`,
     },
     rose: {

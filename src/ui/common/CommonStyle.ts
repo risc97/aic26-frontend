@@ -9,8 +9,9 @@ export const ACCENT_PALETTES = {
     hover: "hover:bg-blue-700",
     hoverSubtle: "hover:bg-blue-200/80",
     highlight: "data-[highlighted]:bg-blue-50 data-[highlighted]:text-blue-700",
-    focusRing: "focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-blue-600",
+    focusRing: "focus-within:ring-1 focus-within:ring-blue-600 focus-within:border-blue-600",
     text: "text-blue-700",
+    textDark: "text-blue-950"
   },
   rose: {
     bg: "bg-rose-600",
@@ -18,8 +19,9 @@ export const ACCENT_PALETTES = {
     hover: "hover:bg-rose-700",
     hoverSubtle: "hover:bg-rose-200/80",
     highlight: "data-[highlighted]:bg-rose-50 data-[highlighted]:text-rose-700",
-    focusRing: "focus-within:ring-2 focus-within:ring-rose-600 focus-within:border-rose-600",
-    text: "text-rose-700"
+    focusRing: "focus-within:ring-1 focus-within:ring-rose-600 focus-within:border-rose-600",
+    text: "text-rose-700",
+    textDark: "text-rose-950"
   },
   emerald: {
     bg: "bg-emerald-600",
@@ -27,8 +29,9 @@ export const ACCENT_PALETTES = {
     hover: "hover:bg-emerald-700",
     hoverSubtle: "hover:bg-emerald-200/80",
     highlight: "data-[highlighted]:bg-emerald-50 data-[highlighted]:text-emerald-700",
-    focusRing: "focus-within:ring-2 focus-within:ring-emerald-600 focus-within:border-emerald-600",
-    text: "text-emerald-700"
+    focusRing: "focus-within:ring-1 focus-within:ring-emerald-600 focus-within:border-emerald-600",
+    text: "text-emerald-700",
+    textDark: "text-emerald-950"
   },
   amber: {
     bg: "bg-amber-600",
@@ -36,8 +39,9 @@ export const ACCENT_PALETTES = {
     hover: "hover:bg-amber-700",
     hoverSubtle: "hover:bg-amber-200/80",
     highlight: "data-[highlighted]:bg-amber-50 data-[highlighted]:text-amber-700",
-    focusRing: "focus-within:ring-2 focus-within:ring-amber-600 focus-within:border-amber-600",
-    text: "text-amber-700"
+    focusRing: "focus-within:ring-1 focus-within:ring-amber-600 focus-within:border-amber-600",
+    text: "text-amber-700",
+    textDark: "text-amber-950"
   },
 } as const;
 

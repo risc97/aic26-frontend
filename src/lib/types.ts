@@ -19,13 +19,7 @@ export interface Item {
   score?: number | null;
 }
 
-export interface OcrItem {
-  keyframe_id: string;
-  video_id: string;
-  timestamp_ms: number;
-  frame_idx: number;
-  video_fps: number;
-  score: number;
+export interface OcrItem extends Item {
   text: string;
 }
 
@@ -36,6 +30,13 @@ export interface TranscriptItem {
   time_start_ms: number;
   time_end_ms: number;
   keyframes: Item[];
+}
+
+export interface TranscriptFlatItem extends Item {
+  transcript_id: string;
+  text: string;
+  time_start_ms: number;
+  time_end_ms: number;
 }
 
 export interface TemporalStage {

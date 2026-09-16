@@ -251,3 +251,5 @@ export class ApiClient {
   //   return response.status === 'ok';
   // }
 }
+
+export const apiClient = new ApiClient();

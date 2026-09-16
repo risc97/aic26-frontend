@@ -8,7 +8,7 @@
   interface Props extends HTMLInputAttributes {
     layout?: Layout;
     label?: string;
-    value?: string | number | undefined;
+    value?: string | number | null;
     accent?: Accent;
     width?: string;
     height?: string;
