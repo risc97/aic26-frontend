@@ -23,6 +23,7 @@
     fps?: number;
     qaState?: 'off' | 'on' | 'review';
     qaAnswer?: string;
+    isActive?: boolean;   // Parent may hide instead destroy, pass this to pause playback
   }
   
   let {
@@ -32,7 +33,10 @@
     fps = $bindable(0),
     qaState = 'off',
     qaAnswer = $bindable(''),
+    isActive = true
   }: Props = $props();
+
+  $inspect(fps, 'fps');
 
   let accentPalette = $derived(ACCENT_PALETTES[accent]);
 
@@ -85,8 +89,13 @@
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}.${fraction.toString().padStart(2, '0')}`;
   }
 
-  // Dedicated effect strictly for fetching FPS when videoId changes
   $effect(() => {
+    // Parent may hide instead destroy, pass this to pause playback
+    if (!isActive) {
+      paused = true;
+    }
+
+    // Dedicated effect strictly for fetching FPS when videoId changes
     const currentId = videoId;
     if (!currentId) return;
     let cancelled = false;
@@ -109,7 +118,11 @@
 </script>
 
 <div class="flex flex-col gap-2 w-full">
-{#if fps > 0}
+{#if !videoId}
+  <div class="flex aspect-video items-center justify-center p-2 bg-slate-50 text-slate-800 select-none text-2xl font-semibold">
+    No video loaded
+  </div>
+{:else if fps > 0}
   <!-- Video -->
   <div class="relative aspect-video bg-slate-800">
     <!-- svelte-ignore a11y_media_has_caption -->
@@ -238,8 +251,8 @@
     </div>
   </div>
 {:else}
-  <div class="flex aspect-video items-center justify-center p-2 bg-slate-50 {BORDER_STYLE} {ACCENT_PALETTES.rose.text} select-none text-2xl font-semibold">
-    Viewport unavailable: Video FPS can't be loaded
+  <div class="flex aspect-video items-center justify-center p-2 bg-slate-50 {ACCENT_PALETTES.rose.text} select-none text-2xl font-semibold">
+    Viewport unavailable: Invalid video / Video FPS can't be loaded
   </div>
 {/if}
 </div>

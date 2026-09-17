@@ -21,7 +21,7 @@
     switch (mode) {
       case 'single': return ACCENT_PALETTES.blue.bg;
       case 'multiple': return ACCENT_PALETTES.rose.bg;
-      case 'submit': return ACCENT_PALETTES.emerald.bg;
+      case 'review': return ACCENT_PALETTES.emerald.bg;
       case 'logs': return ACCENT_PALETTES.amber.bg;
     }
   });
@@ -38,7 +38,7 @@
     switch (m) {
       case 'single': return `${ACCENT_PALETTES.blue.bg} text-white`;
       case 'multiple': return `${ACCENT_PALETTES.rose.bg} text-white`;
-      case 'submit': return `${ACCENT_PALETTES.emerald.bg} text-white`;
+      case 'review': return `${ACCENT_PALETTES.emerald.bg} text-white`;
       case 'logs': return `${ACCENT_PALETTES.amber.bg} text-white`;
     }
   }
@@ -79,8 +79,8 @@
             Multiple
           </Tabs.Trigger>
           <Tabs.Trigger
-            value="submit"
-            class={`px-3 py-1.5 text-sm font-semibold transition-colors ${PRESSED_ANIM} outline-none ${getActiveColorClass('submit', mode === 'submit')}`}
+            value="review"
+            class={`px-3 py-1.5 text-sm font-semibold transition-colors ${PRESSED_ANIM} outline-none ${getActiveColorClass('review', mode === 'review')}`}
           >
             Review
           </Tabs.Trigger>

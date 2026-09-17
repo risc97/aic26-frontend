@@ -17,7 +17,7 @@
   import MyCheckbox from './common/MyCheckbox.svelte';
   import MyInputbox from './common/MyInputbox.svelte';
   import KeyframeCard from './KeyframeCard.svelte';
-  // import VideoDialog from './VideoDialog.svelte';
+  import VideoDialog from './VideoDialog.svelte';
   import type { CardItem, Item } from '../lib/types';
 
   const MODE_OPTIONS = [
@@ -46,14 +46,6 @@
   function openVideo(item: CardItem) {
     selectedVideo = item;
     videoDialogOpen = true;
-  }
-
-  function handleVideoDialogChange(open: boolean) {
-    videoDialogOpen = open;
-
-    if (!open) {
-      selectedVideo = null;
-    }
   }
 
   $inspect(singleSearch.searchMode)
@@ -201,11 +193,11 @@
   </div>
 </div>
 
-<!-- <VideoDialog
+<VideoDialog
   bind:open={videoDialogOpen}
   item={selectedVideo}
-  onOpenChange={handleVideoDialogChange}
-/> -->
+  accent="blue"
+/>
 
 {#snippet paginationControl()}
   {#if singleSearch.results.length > singleSearch.pageSize}

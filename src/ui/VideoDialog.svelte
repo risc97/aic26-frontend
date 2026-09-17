@@ -1,15 +1,22 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
   import { ApiClient } from "../lib/api";
-  import type { Item } from "../lib/types";
+  import VideoFrame from "./VideoFrame.svelte";
+  import type { CardItem } from "../lib/types";
+  import { BORDER_STYLE, PRESSED_ANIM } from "./common/CommonStyle";
+  import { XIcon } from "phosphor-svelte";
 
   interface Props {
     open: boolean;
-    onOpenChange: (open: boolean) => void;
-    item: (Item & { transcriptText?: string; ocrText?: string }) | null;
+    item: CardItem | null;
+    accent: 'blue' | 'rose' | 'emerald' | 'amber';
   }
 
-  let { open = $bindable(false), onOpenChange, item }: Props = $props();
+  let { 
+    open = $bindable(false), 
+    item = null,
+    accent
+  }: Props = $props();
 
   const api = new ApiClient();
   let videoRef = $state<HTMLVideoElement | null>(null);
@@ -27,47 +34,23 @@
   });
 </script>
 
-<Dialog.Root {open} {onOpenChange}>
+<Dialog.Root {open}>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm transition-opacity" />
-    <Dialog.Content class="fixed left-1/2 top-1/2 z-50 w-full max-w-3xl -translate-x-1/2 -translate-y-1/2 border-2 border-neutral-900 bg-white p-6 shadow-xl focus:outline-none">
+    <Dialog.Overlay class="fixed inset-0 z-50 backdrop-blur-xs transition-opacity" />
+    <Dialog.Content class="{BORDER_STYLE} fixed top-1/2 left-1/2 aspect-auto z-50 w-[90%] max-w-6xl -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-lg focus:outline-none">
       <div class="flex items-center justify-between border-b-2 border-neutral-900 pb-3 mb-4">
         <Dialog.Title class="font-mono text-lg font-bold text-slate-900">
           Watch Video: {item?.video_id} {#if item?.timestamp_ms !== null}({Math.floor((item?.timestamp_ms || 0) / 1000)}s){/if}
         </Dialog.Title>
-        <Dialog.Close class="border-2 border-neutral-900 px-2.5 py-1 text-sm font-thebold hover:bg-slate-100">
-          ✕
+        <Dialog.Close class="{BORDER_STYLE} p-1 text-sm {PRESSED_ANIM}">
+          <XIcon size="18px" weight="bold" />
         </Dialog.Close>
       </div>
-
       {#if item}
-        <div class="flex flex-col gap-4">
-          <div class="relative aspect-video w-full overflow-hidden border-2 border-neutral-900 bg-black">
-            <video
-              bind:this={videoRef}
-              src={videoUrl}
-              controls
-              autoplay
-              loop={isLooping}
-              class="h-full w-full object-contain"
-            ></video>
-          </div>
-
-          <!-- Controls / Looping Option -->
-          <div class="flex items-center justify-between">
-            <label class="flex items-center gap-2 cursor-pointer font-mono text-sm font-bold text-slate-700">
-              <input
-                type="checkbox"
-                bind:checked={isLooping}
-                class="h-4 w-4 border-2 border-neutral-900 accent-rose-600"
-              />
-              Loop Video
-            </label>
-
-            <span class="font-mono text-xs text-slate-500">
-              Frame: {item.keyframe_id} | Time: {item.timestamp_ms}ms
-            </span>
-          </div>
+        <VideoFrame videoId={item.video_id} frameIdx={item.frame_idx} bind:fps={item.video_fps} accent={accent} isActive={open} />
+      {:else}
+        <div class="flex aspect-video items-center justify-center p-2 bg-slate-50 text-slate-800 select-none text-2xl font-semibold">
+          No video selected
         </div>
       {/if}
     </Dialog.Content>

@@ -22,11 +22,16 @@
       <SingleSearch />
     {:else if mode === 'multiple'}
       <MultipleSearch />
-    {:else if mode === 'submit'}
-      <Review />
+    <!-- {:else if mode === 'review'} -->
+      <!-- <Review /> -->
     {:else if mode === 'logs'}
       <!-- Logs mode view placeholder -->
     {/if}
+
+    <!-- Review remains mounted: video buffer & state stay intact -->
+    <div class={mode === 'review' ? 'contents' : 'hidden'}>
+      <Review isActive={mode === 'review'} />
+    </div>
   </main>
 
   <ConfigModal 
