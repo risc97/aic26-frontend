@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component } from 'svelte';
-  import type { Item } from '../lib/types';
+  import type { CardItem } from '../lib/types';
   import { apiClient } from '../lib/api';
   import { reviewQueue, type SingleReviewItem } from '../lib/reviewQueue.svelte';
   import {
@@ -13,14 +13,11 @@
     import { DropdownMenu } from 'bits-ui';
     import { DotsThreeVerticalIcon, ArrowLineUpIcon, PlusIcon, AirplaneTakeoffIcon } from 'phosphor-svelte';
 
-  type CardItem = Item & {
-    text?: string;
-  };
-
   type CardAction = {
     id: string;
     label: string;
     icon?: Component;
+    disabled?: boolean;
     class: string;
     run: (item: CardItem) => void;
   };
@@ -32,8 +29,6 @@
     qaEnabled: boolean;
     qaAnswer: string;
     actions?: CardAction[];
-    add?: (item: CardItem, answer?: string) => void;
-    addTop?: (item: CardItem, answer?: string) => void;
     watchVideo?: (item: CardItem) => void;
   }
 
@@ -44,8 +39,6 @@
     qaEnabled = false,
     qaAnswer = $bindable(''),
     actions,
-    add = () => {},
-    addTop = () => {},
     watchVideo = () => {}
   }: Props = $props();
 
@@ -66,11 +59,8 @@
 
   let displayTime = $derived(formatTime(timestampMs, keyframeId));
 
-  let isImageError = $state(false);
   let isOcrExpanded = $state(false);
   let isTranscriptExpanded = $state(false);
-  let moved = $state(false);
-
 
   function formatTime(
     milliseconds: number | undefined,
@@ -103,7 +93,7 @@
       alt={`Frame ${keyframeId} from ${videoId}`}
       class={"h-full w-full object-cover"}
       loading="lazy"
-      onerror={() => (isImageError = true)}
+      onerror={() => {}}
     />
 
     <span class="absolute inset-x-0 bottom-0 bg-slate-900/65 px-2 py-1 text-center text-xs font-bold text-white opacity-0 transition-opacity group-hover/video:opacity-100">
@@ -148,7 +138,8 @@
                 <DropdownMenu.Item
                   textValue={action.label}
                   onSelect={() => action.run(item)}
-                  class="flex items-center gap-1 px-1 py-1 select-none text-sm data-highlighted:outline-none {PRESSED_ANIM} {action.class}"
+                  {...(action.disabled ? { disabled: true } : {})}
+                  class="flex items-center gap-1 px-1 py-1 select-none text-sm data-highlighted:outline-none {PRESSED_ANIM} {action.disabled ? 'opacity-50 cursor-not-allowed' : ''} {action.class}"
                 >
                   {#if Icon}
                     <Icon size="14px" />
@@ -250,8 +241,8 @@
           class="flex flex-1 items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
           onclick={() => {
             const reviewItem: SingleReviewItem = {
-              video_id: videoId,
-              keyframe_id: keyframeId,
+              videoId: videoId,
+              frameIndex: frameIndex,
               answer: qaAnswer || undefined
             };
             reviewQueue.addTop(reviewItem);
@@ -266,8 +257,8 @@
           class="flex flex-1 items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
           onclick={() => {
             const reviewItem: SingleReviewItem = {
-              video_id: videoId,
-              keyframe_id: keyframeId,
+              videoId: videoId,
+              frameIndex: frameIndex,
               answer: qaAnswer || undefined
             };
             reviewQueue.add(reviewItem);

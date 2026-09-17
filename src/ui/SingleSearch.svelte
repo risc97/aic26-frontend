@@ -17,8 +17,8 @@
   import MyCheckbox from './common/MyCheckbox.svelte';
   import MyInputbox from './common/MyInputbox.svelte';
   import KeyframeCard from './KeyframeCard.svelte';
-  import VideoDialog from './VideoDialog.svelte';
-  import type { Item } from '../lib/types';
+  // import VideoDialog from './VideoDialog.svelte';
+  import type { CardItem, Item } from '../lib/types';
 
   const MODE_OPTIONS = [
     { value: 'semantic', label: 'Semantic', icon: SparkleIcon, search_placeholder: "Query: 'person riding a red bicycle'..." },
@@ -40,15 +40,10 @@
     }
   }
 
-  type VideoItem = Item & {
-    transcriptText?: string;
-    ocrText?: string;
-  };
-
-  let selectedVideo = $state<VideoItem | null>(null);
+  let selectedVideo = $state<CardItem | null>(null);
   let videoDialogOpen = $state(false);
 
-  function openVideo(item: VideoItem) {
+  function openVideo(item: CardItem) {
     selectedVideo = item;
     videoDialogOpen = true;
   }
@@ -74,7 +69,7 @@
     <div class="inline-flex w-full items-center overflow-hidden {BORDER_STYLE} {ACCENT_PALETTES.blue.focusRing} px-2 gap-2 transition-all">
       
       {#if singleSearch.searchMode === 'semantic'}
-        <MyDropdown items={MODEL_OPTIONS} bind:value={singleSearch.modelSemantic} accent="blue"/>
+        <MyDropdown items={MODEL_OPTIONS} bind:value={singleSearch.modelSemantic} width="w-24" accent="blue"/>
       {:else if singleSearch.searchMode === 'transcript'}
         <MyCheckbox label="Exact" bind:checked={singleSearch.isTranscriptExact}/>
       {/if}
@@ -183,6 +178,7 @@
                 {
                   id: 'similar',
                   label: 'Similar keyframes',
+                  disabled: true,
                   icon: TildeIcon,
                   class: 'text-blue-700 hover:bg-blue-100 hover:text-blue-900',
                   run: (currentItem) => {
@@ -205,11 +201,11 @@
   </div>
 </div>
 
-<VideoDialog
+<!-- <VideoDialog
   bind:open={videoDialogOpen}
   item={selectedVideo}
   onOpenChange={handleVideoDialogChange}
-/>
+/> -->
 
 {#snippet paginationControl()}
   {#if singleSearch.results.length > singleSearch.pageSize}

@@ -1,35 +1,35 @@
 export type SingleReviewItem = {
-  video_id: string;
-  keyframe_id: string;
+  videoId: string;
+  frameIndex: number;
   answer?: string;
 }
 
 export type TrakeReviewItem = {
-  video_id: string;
-  keyframe_ids: string[];
+  videoId: string;
+  frameIndexArray: number[];
   answer?: string;
 }
 
 export type ReviewItem = SingleReviewItem | TrakeReviewItem;
 
 function isSingleReviewItem(item: ReviewItem): item is SingleReviewItem {
-  return 'keyframe_id' in item;
+  return 'frameIdx' in item;
 }
 
 function isSameItem(left: ReviewItem, right: ReviewItem): boolean {
-  if (left.video_id !== right.video_id) {
+  if (left.videoId !== right.videoId) {
     return false;
   }
 
   if (isSingleReviewItem(left) && isSingleReviewItem(right)) {
-    return left.keyframe_id === right.keyframe_id;
+    return left.frameIndex === right.frameIndex;
   }
 
   if (!isSingleReviewItem(left) && !isSingleReviewItem(right)) {
     return (
-      left.keyframe_ids.length === right.keyframe_ids.length &&
-      left.keyframe_ids.every((keyframeId, index) => {
-        return keyframeId === right.keyframe_ids[index];
+      left.frameIndexArray.length === right.frameIndexArray.length &&
+      left.frameIndexArray.every((frameIndex, index) => {
+        return frameIndex === right.frameIndexArray[index];
       })
     );
   }

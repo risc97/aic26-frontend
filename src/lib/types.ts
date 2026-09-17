@@ -39,6 +39,13 @@ export interface TranscriptFlatItem extends Item {
   time_end_ms: number;
 }
 
+// Item entry for kf card
+export interface CardItem extends Item {
+  text?: string;
+  time_start_ms?: number;   //Transcript time start
+  time_end_ms?: number;     //Transcript time end
+};
+
 export interface TemporalStage {
   query: string;
   variants?: string[];

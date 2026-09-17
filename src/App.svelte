@@ -17,13 +17,13 @@
     />
   </div>
 
-  <main class="min-h-0 flex-1 flex flex-col px-2 pb-6 overflow-y-scroll">
+  <main class="min-h-0 flex-1 flex flex-col px-2 py-4 overflow-y-scroll">
     {#if mode === 'single'}
       <SingleSearch />
     {:else if mode === 'multiple'}
       <MultipleSearch />
     {:else if mode === 'submit'}
-      <!-- Review mode view placeholder -->
+      <Review />
     {:else if mode === 'logs'}
       <!-- Logs mode view placeholder -->
     {/if}
