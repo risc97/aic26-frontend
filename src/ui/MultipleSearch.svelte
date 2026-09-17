@@ -7,7 +7,7 @@
     TargetIcon,
     TrashIcon
   } from "phosphor-svelte";
-  import { BORDER_STYLE, ACCENT_PALETTES } from "./common/CommonStyle";
+  import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from "./common/CommonStyle";
   import MyDropdown from "./common/MyDropdown.svelte";
   import { multipleSearch } from "../lib/multipleSearchImpl.svelte";
     import { Toggle } from "bits-ui";
@@ -56,7 +56,7 @@
           title="Remove stage"
           disabled={multipleSearch.stages.length === 1}
           onclick={() => multipleSearch.removeStage(stage.id)}
-          class="flex h-full w-10 shrink-0 items-center justify-center border-l-2 border-slate-900 text-slate-600 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-30"
+          class="flex h-full w-10 shrink-0 items-center justify-center border-l-2 {PRESSED_ANIM} border-slate-900 text-slate-600 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-30"
         >
           <TrashIcon size={18} />
         </button>
@@ -70,7 +70,7 @@
         <button
           type="button"
           onclick={() => multipleSearch.addStage()}
-          class="flex h-10 w-30 items-center justify-center gap-1 {BORDER_STYLE} border-dashed {rose.hoverSubtle} text-sm font-semibold transition-colors"
+          class="flex h-10 w-30 items-center justify-center gap-1 {PRESSED_ANIM} {BORDER_STYLE} border-dashed {rose.hoverSubtle} text-sm font-semibold transition-colors"
         >
           <PlusIcon size={18} />
           <span class="text-sm font-semibold">Add stage</span>

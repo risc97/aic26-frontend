@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Toggle, Pagination } from 'bits-ui';
   import { singleSearch } from '../lib/singleSearchImpl.svelte';
+  import { appState } from '../lib/appState.svelte';
   import {
     SparkleIcon,
     ArticleIcon,
@@ -157,7 +158,7 @@
               {item}
               type="single"
               mode={singleSearch.searchMode}
-              qaEnabled={singleSearch.qaEnabled}
+              qaEnabled={appState.qaEnabled}
               qaAnswer={singleSearch.qaAnswer}
               watchVideo={openVideo}
               actions={[

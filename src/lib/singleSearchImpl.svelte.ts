@@ -28,7 +28,7 @@ class SingleSearchStore {
   errorMessage = $state<string | null>(null);
 
   // QA state
-  qaEnabled = $state(false);
+  // qaEnabled = $state(false);
   qaAnswer = $state<string>('');
 
   // UI state

@@ -1,9 +1,10 @@
 <script lang="ts">
   import { config } from '../lib/config.svelte';
-  import { Tabs, Tooltip } from "bits-ui";
+  import { Tabs, Tooltip, Toggle } from "bits-ui";
   import { mockConfig } from '../lib/mock.svelte';
-  import { BORDER_STYLE, ACCENT_PALETTES } from './common/CommonStyle';
-  import { CpuIcon, GearIcon } from 'phosphor-svelte';
+  import { appState } from '../lib/appState.svelte';
+  import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from './common/CommonStyle';
+  import { CpuIcon, GearIcon, QuestionIcon } from 'phosphor-svelte';
 
   interface HeaderProps {
     onOpenConfigModal: () => void;
@@ -64,28 +65,28 @@
           }
         }}
       >
-        <Tabs.List class="flex border-2 border-neutral-900 bg-slate-100 p-0.5">
+        <Tabs.List class="flex {BORDER_STYLE} bg-slate-100 p-0.5">
           <Tabs.Trigger
             value="single"
-            class={`px-3 py-1.5 text-sm font-semibold transition-colors outline-none ${getActiveColorClass('single', mode === 'single')}`}
+            class={`px-3 py-1.5 text-sm font-semibold transition-colors ${PRESSED_ANIM} outline-none ${getActiveColorClass('single', mode === 'single')}`}
           >
             Single
           </Tabs.Trigger>
           <Tabs.Trigger
             value="multiple"
-            class={`px-3 py-1.5 text-sm font-semibold transition-colors outline-none ${getActiveColorClass('multiple', mode === 'multiple')}`}
+            class={`px-3 py-1.5 text-sm font-semibold transition-colors ${PRESSED_ANIM} outline-none ${getActiveColorClass('multiple', mode === 'multiple')}`}
           >
             Multiple
           </Tabs.Trigger>
           <Tabs.Trigger
             value="submit"
-            class={`px-3 py-1.5 text-sm font-semibold transition-colors outline-none ${getActiveColorClass('submit', mode === 'submit')}`}
+            class={`px-3 py-1.5 text-sm font-semibold transition-colors ${PRESSED_ANIM} outline-none ${getActiveColorClass('submit', mode === 'submit')}`}
           >
             Review
           </Tabs.Trigger>
           <Tabs.Trigger
             value="logs"
-            class={`px-3 py-1.5 text-sm font-semibold transition-colors outline-none ${getActiveColorClass('logs', mode === 'logs')}`}
+            class={`px-3 py-1.5 text-sm font-semibold transition-colors ${PRESSED_ANIM} outline-none ${getActiveColorClass('logs', mode === 'logs')}`}
           >
             Logs
           </Tabs.Trigger>
@@ -95,6 +96,16 @@
 
     <!-- Right: Config & Status -->
     <div class="flex shrink-0 items-center gap-2">
+      <Toggle.Root
+        pressed={appState.qaEnabled}
+        onPressedChange={(enabled) => (appState.qaEnabled = enabled)}
+        aria-label="Toggle QA mode"
+        title="Toggle QA mode"
+        class="flex h-8 w-16 gap-2 items-center justify-center {BORDER_STYLE} font-sm font-semibold data-[state=on]:bg-emerald-500 data-[state=on]:text-white {PRESSED_ANIM}"
+      >
+        <QuestionIcon size="18px" weight="bold" />
+        QA
+      </Toggle.Root>
       <Tooltip.Provider>
         <Tooltip.Root>
           <Tooltip.Trigger
@@ -110,11 +121,11 @@
           <Tooltip.Trigger
             type="button"
             onclick={onOpenConfigModal}
-            class="flex h-9 w-9 items-center justify-center border-2 border-neutral-900 bg-white text-slate-700 hover:bg-slate-100 outline-none"
+            class="flex h-9 w-9 {PRESSED_ANIM} {BORDER_STYLE} items-center justify-center bg-white text-slate-700 hover:bg-slate-100 outline-none"
           >
             <GearIcon size="16px" weight="bold"/>
           </Tooltip.Trigger>
-          <Tooltip.Content class="z-50 border-2 border-neutral-900 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
+          <Tooltip.Content class="z-50 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
             API Request Configuration
             <Tooltip.Arrow class="border-neutral-900 fill-white" />
           </Tooltip.Content>

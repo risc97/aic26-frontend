@@ -2,14 +2,16 @@
   import type { Component } from 'svelte';
   import type { Item } from '../lib/types';
   import { apiClient } from '../lib/api';
+  import { reviewQueue, type SingleReviewItem } from '../lib/reviewQueue.svelte';
   import {
     ACCENT_PALETTES,
     BORDER_STYLE,
     BORDER_STYLE_LIGHT,
+    PRESSED_ANIM,
     type AccentColor
   } from './common/CommonStyle';
     import { DropdownMenu } from 'bits-ui';
-    import { DotsThreeVerticalIcon } from 'phosphor-svelte';
+    import { DotsThreeVerticalIcon, ArrowLineUpIcon, PlusIcon, AirplaneTakeoffIcon } from 'phosphor-svelte';
 
   type CardItem = Item & {
     text?: string;
@@ -115,7 +117,7 @@
       <!-- Video ID & Hover Keyframe ID -->
       <div class="flex">
         <span
-          class="group/id {BORDER_STYLE} truncate p-1 font-mono text-xl font-bold {accentPalette.textDark}"
+          class="group/id {BORDER_STYLE} truncate p-1 font-mono text-xl font-black {accentPalette.textDark}"
           title={`${videoId}-${keyframeId}`}
         >
           {videoId}<span class="hidden group-hover/id:inline">-{keyframeId}</span>
@@ -123,7 +125,7 @@
       </div>
 
       <!-- Option -->
-      <div class="flex shrink-0 items-center gap-2">
+      <div class="flex shrink-0 items-center gap-2 {PRESSED_ANIM}">
         <DropdownMenu.Root>
           <DropdownMenu.Trigger
             class="flex h-7 w-7 items-center justify-center {BORDER_STYLE} bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -146,7 +148,7 @@
                 <DropdownMenu.Item
                   textValue={action.label}
                   onSelect={() => action.run(item)}
-                  class="flex items-center gap-1 px-1 py-1 select-none text-sm data-highlighted:outline-none {action.class}"
+                  class="flex items-center gap-1 px-1 py-1 select-none text-sm data-highlighted:outline-none {PRESSED_ANIM} {action.class}"
                 >
                   {#if Icon}
                     <Icon size="14px" />
@@ -180,7 +182,7 @@
 
     <!-- Transcript  -->
     {#if mode === 'transcript' && item.text}
-      <div class="border-2 border-slate-900 bg-blue-50 px-1.5 py-1">
+      <div class="{BORDER_STYLE} bg-blue-50 p-1">
         <button
           type="button"
           class="flex w-full items-center justify-between text-sm font-bold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
@@ -227,15 +229,14 @@
     {/if}
 
     {#if qaEnabled}
-      <div class="{BORDER_STYLE}pt-1">
-        <label class="mb-1 block text-sm text-slate-500" for={`answer-${videoId}-${keyframeId}`}>
+      <div class="{BORDER_STYLE} p-1 mt-1">
+        <label class="block text-sm text-slate-800 select-none" for={`answer-${videoId}-${keyframeId}`}>
           Answer:
         </label>
-
         <input
           id={`answer-${videoId}-${keyframeId}`}
           type="text"
-          class="w-full border-2 border-slate-900 bg-white px-2 py-1 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          class="w-full bg-white p-1 text-sm text-slate-800 placeholder:text-slate-400 {ACCENT_PALETTES.blue.focusRing} focus:outline-none"
           placeholder="Type the answer for this frame..."
           bind:value={qaAnswer}
         />
@@ -243,25 +244,46 @@
     {/if}
 
     {#if type === 'single'}
-      <div class="mt-auto flex gap-1.5 pt-1.5">
+      <div class="flex gap-1 pt-2">
         <button
           type="button"
-          class={`flex flex-1 items-center justify-center ${BORDER_STYLE} py-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-            moved
-              ? 'bg-blue-700 text-white'
-              : 'bg-white text-slate-700 hover:bg-slate-50'
-          }`}
-          onclick={() =>{}}
+          class="flex flex-1 items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
+          onclick={() => {
+            const reviewItem: SingleReviewItem = {
+              video_id: videoId,
+              keyframe_id: keyframeId,
+              answer: qaAnswer || undefined
+            };
+            reviewQueue.addTop(reviewItem);
+          }}
         >
-          {moved ? 'Moved' : 'Move to top'}
+          <ArrowLineUpIcon size="16px" weight="bold" />
+          Add top
         </button>
 
         <button
           type="button"
-          class={`flex flex-1 items-center justify-center ${BORDER_STYLE} py-2 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 'bg-emerald-500 bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700`}
-          onclick={() => {}}
+          class="flex flex-1 items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
+          onclick={() => {
+            const reviewItem: SingleReviewItem = {
+              video_id: videoId,
+              keyframe_id: keyframeId,
+              answer: qaAnswer || undefined
+            };
+            reviewQueue.add(reviewItem);
+          }}
         >
-          Add to list
+          <PlusIcon size="16px" weight="bold" />
+          Add
+        </button>
+
+        <button
+          type="button"
+          class="flex flex-1 items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.amber.bg} {ACCENT_PALETTES.amber.hover} text-slate-100 text-sm font-bold {PRESSED_ANIM}"
+          onclick={() => console.log('Departure!')}
+        >
+          <AirplaneTakeoffIcon size="16px" weight="bold" />
+          Submit
         </button>
       </div>
     {/if}
