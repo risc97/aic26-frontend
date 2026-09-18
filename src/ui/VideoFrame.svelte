@@ -12,16 +12,19 @@
     TargetIcon,
     ArrowLineUpIcon, 
     PlusIcon, 
-    AirplaneTakeoffIcon
+    AirplaneTakeoffIcon,
+    QuestionIcon,
+    ChatCenteredTextIcon
   } from 'phosphor-svelte';
     import { reviewQueue, type SingleReviewItem } from "../lib/reviewQueue.svelte";
+    import { appState } from "../lib/appState.svelte";
 
   interface Props {
     accent?: 'blue' | 'rose' | 'emerald' | 'amber';
     videoId: string;
     frameIdx: number;
     fps?: number;
-    qaState?: 'off' | 'on' | 'review';
+    qaReadonly?: boolean;
     qaAnswer?: string;
     isActive?: boolean;   // Parent may hide instead destroy, pass this to pause playback
   }
@@ -29,9 +32,9 @@
   let {
     accent = 'blue',
     videoId = '',
-    frameIdx = 0,
+    frameIdx = $bindable(0),
     fps = $bindable(0),
-    qaState = 'off',
+    qaReadonly = false,
     qaAnswer = $bindable(''),
     isActive = true
   }: Props = $props();
@@ -39,6 +42,8 @@
   $inspect(fps, 'fps');
 
   let accentPalette = $derived(ACCENT_PALETTES[accent]);
+
+  let videoElement = $state<HTMLVideoElement | null>(null);
 
   let FRAME_INTERVAL = $derived(fps > 0 ? 1/fps : 0);
   let MULTIFRAME_INTERVAL = $derived(fps > 0 ? FRAME_INTERVAL * 20 : 0);
@@ -90,6 +95,13 @@
   }
 
   $effect(() => {
+    if (videoElement && fps > 0 && frameIdx >= 0) {
+      videoElement.currentTime = frameIdx / fps;
+      videoElement.play().catch(() => {
+        // Browser may block autoplay
+      });
+    }
+    
     // Parent may hide instead destroy, pass this to pause playback
     if (!isActive) {
       paused = true;
@@ -127,6 +139,7 @@
   <div class="relative aspect-video bg-slate-800">
     <!-- svelte-ignore a11y_media_has_caption -->
     <video
+      bind:this={videoElement}
       bind:paused
       bind:currentTime
       bind:duration
@@ -136,6 +149,22 @@
       class="h-full w-full object-contain"
     ></video>
   </div>
+
+  {#if appState.qaEnabled}
+    <div class="{BORDER_STYLE} p-1 mt-1 flex flex-row gap-1 items-center">
+      <label class="text-sm text-slate-800 select-none" for={`answer-${videoId}-${frameIdx}`}>
+        <ChatCenteredTextIcon size="20px"/>
+      </label>
+      <input
+        id={`answer-${videoId}-${frameIdx}`}
+        type="text"
+        class="w-full bg-white p-1 text-sm text-slate-800 placeholder:text-slate-400 {ACCENT_PALETTES.blue.focusRing} rounded focus:outline-none"
+        placeholder="Type the answer for this frame..."
+        disabled={qaReadonly}
+        bind:value={qaAnswer}
+      />
+    </div>
+  {/if}
 
   <!-- Control area -->
   <div class="flex justify-between items-center w-full">
@@ -201,6 +230,16 @@
         <TargetIcon size="18px" weight="bold"/>
         <span>#{frameIdx} ({displayTime(frameIdx / fps)})</span>
       </button>
+      <Toggle.Root
+        pressed={appState.qaEnabled}
+        onPressedChange={(enabled) => (appState.qaEnabled = enabled)}
+        aria-label="Toggle QA mode"
+        title="Toggle QA mode"
+        class="flex h-9 w-14 gap-1 items-center justify-center {BORDER_STYLE} font-sm font-semibold data-[state=on]:bg-emerald-500 data-[state=on]:text-white {PRESSED_ANIM}"
+      >
+        <QuestionIcon size="18px" weight="bold" />
+        QA
+      </Toggle.Root>
     </div>
 
     <!-- Right control area -->

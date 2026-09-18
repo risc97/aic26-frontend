@@ -11,7 +11,7 @@
     type AccentColor
   } from './common/CommonStyle';
     import { DropdownMenu } from 'bits-ui';
-    import { DotsThreeVerticalIcon, ArrowLineUpIcon, PlusIcon, AirplaneTakeoffIcon } from 'phosphor-svelte';
+    import { DotsThreeVerticalIcon, ArrowLineUpIcon, PlusIcon, AirplaneTakeoffIcon, ChatCenteredTextIcon } from 'phosphor-svelte';
 
   type CardAction = {
     id: string;
@@ -220,19 +220,19 @@
     {/if}
 
     {#if qaEnabled}
-      <div class="{BORDER_STYLE} p-1 mt-1">
-        <label class="block text-sm text-slate-800 select-none" for={`answer-${videoId}-${keyframeId}`}>
-          Answer:
-        </label>
-        <input
-          id={`answer-${videoId}-${keyframeId}`}
-          type="text"
-          class="w-full bg-white p-1 text-sm text-slate-800 placeholder:text-slate-400 {ACCENT_PALETTES.blue.focusRing} focus:outline-none"
-          placeholder="Type the answer for this frame..."
-          bind:value={qaAnswer}
-        />
-      </div>
-    {/if}
+    <div class="{BORDER_STYLE} p-1 mt-1 flex flex-row gap-1 items-center">
+      <label class="text-sm text-slate-800 select-none" for={`answer-${videoId}-${keyframeId}`}>
+        <ChatCenteredTextIcon size="20px"/>
+      </label>
+      <input
+        id={`answer-${videoId}-${keyframeId}`}
+        type="text"
+        class="w-full bg-white p-1 text-sm text-slate-800 placeholder:text-slate-400 {ACCENT_PALETTES.blue.focusRing} rounded focus:outline-none"
+        placeholder="Type the answer for this frame..."
+        bind:value={qaAnswer}
+      />
+    </div>
+  {/if}
 
     {#if type === 'single'}
       <div class="flex gap-1 pt-2">

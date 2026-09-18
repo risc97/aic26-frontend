@@ -48,7 +48,8 @@
     videoDialogOpen = true;
   }
 
-  $inspect(singleSearch.searchMode)
+
+  // $inspect(singleSearch.searchMode)
 </script>
 
 <div class="min-h-0 flex flex-1 flex-col">
@@ -146,7 +147,7 @@
               type="single"
               mode={singleSearch.searchMode}
               qaEnabled={appState.qaEnabled}
-              qaAnswer={singleSearch.qaAnswer}
+              bind:qaAnswer={singleSearch.qaAnswer}
               watchVideo={openVideo}
               actions={[
                 {
@@ -196,6 +197,7 @@
 <VideoDialog
   bind:open={videoDialogOpen}
   item={selectedVideo}
+  bind:qaAnswer={singleSearch.qaAnswer}
   accent="blue"
 />
 
