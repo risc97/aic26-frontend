@@ -2,6 +2,7 @@
   import type { Component } from 'svelte';
   import type { CardItem } from '../lib/types';
   import { apiClient } from '../lib/api';
+  import { appState } from '../lib/appState.svelte';
   import { reviewQueue, type SingleReviewItem } from '../lib/reviewQueue.svelte';
   import {
     ACCENT_PALETTES,
@@ -11,7 +12,7 @@
     type AccentColor
   } from './common/CommonStyle';
     import { DropdownMenu } from 'bits-ui';
-    import { DotsThreeVerticalIcon, ArrowLineUpIcon, PlusIcon, AirplaneTakeoffIcon, ChatCenteredTextIcon } from 'phosphor-svelte';
+    import { DotsThreeVerticalIcon, ArrowLineUpIcon, PlusIcon, AirplaneTakeoffIcon, ChatCenteredTextIcon, CheckFatIcon } from 'phosphor-svelte';
 
   type CardAction = {
     id: string;
@@ -24,26 +25,28 @@
 
   interface Props {
     item: CardItem;
-    type: 'single' | 'multiple';
+    accent: AccentColor;
     mode: 'semantic' | 'transcript' | 'ocr' | 'video_id';
-    qaEnabled: boolean;
+    allowSubmit?: boolean;
     qaAnswer: string;
     actions?: CardAction[];
+    lockedInLabel?: string;     // for multiple search
     watchVideo?: (item: CardItem) => void;
   }
 
   let {
     item,
-    type = 'single',
+    accent = 'blue',
+    allowSubmit = $bindable(true),
     mode = 'semantic',
-    qaEnabled = false,
     qaAnswer = $bindable(''),
     actions,
+    lockedInLabel = $bindable(''),
     watchVideo = () => {}
   }: Props = $props();
 
   // Appearance
-  let accentPalette = $derived(type === 'single' ? ACCENT_PALETTES.blue : ACCENT_PALETTES.rose);
+  let accentPalette = ACCENT_PALETTES[accent];
 
   // Derived values stay synchronized when Svelte reuses this component
   // for a different result item.
@@ -155,7 +158,7 @@
     </div>
 
     <!-- Info -->
-    <div class="flex items-center justify-between gap-2 font-mono text-sm text-slate-700">
+    <div class="flex flex-wrap items-center justify-between gap-1 font-mono text-sm text-slate-700">
       {#if resolvedScore !== undefined}
         <span class="shrink-0 {BORDER_STYLE} bg-amber-100 p-0.5 text-sm font-bold font-mono text-amber-900">
           S: {formattedScore}
@@ -219,7 +222,7 @@
       </div>
     {/if}
 
-    {#if qaEnabled}
+    {#if appState.qaEnabled}
     <div class="{BORDER_STYLE} p-1 mt-1 flex flex-row gap-1 items-center">
       <label class="text-sm text-slate-800 select-none" for={`answer-${videoId}-${keyframeId}`}>
         <ChatCenteredTextIcon size="20px"/>
@@ -227,14 +230,21 @@
       <input
         id={`answer-${videoId}-${keyframeId}`}
         type="text"
-        class="w-full bg-white p-1 text-sm text-slate-800 placeholder:text-slate-400 {ACCENT_PALETTES.blue.focusRing} rounded focus:outline-none"
+        class="w-full bg-white p-1 text-sm text-slate-800 placeholder:text-slate-400 {accentPalette.focusRing} rounded focus:outline-none"
         placeholder="Type the answer for this frame..."
         bind:value={qaAnswer}
       />
     </div>
   {/if}
 
-    {#if type === 'single'}
+    {#if lockedInLabel !== ''}
+      <label class="select-none mt-1 flex items-center justify-center p-1 gap-1 text-sm font-bold {BORDER_STYLE} {accentPalette.bg} text-white">
+        <CheckFatIcon size="16px" weight="bold" />
+        {lockedInLabel}
+      </label>
+    {/if}
+
+    {#if allowSubmit}
       <div class="flex gap-1 pt-2">
         <button
           type="button"

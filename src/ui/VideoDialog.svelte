@@ -53,7 +53,7 @@
 <Dialog.Root bind:open>
   <Dialog.Portal>
     <Dialog.Overlay class="fixed inset-0 z-50 backdrop-blur-xs transition-opacity" />
-    <Dialog.Content class="{BORDER_STYLE} fixed top-1/2 left-1/2 z-50 w-11/12 max-w-7xl -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-4 shadow-lg focus:outline-none">
+    <Dialog.Content class="{BORDER_STYLE} fixed top-1/2 left-1/2 z-50 w-[95vw] max-w-[85vw] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-4 shadow-lg focus:outline-none">
       <div class="flex gap-1">
         <section class="flex w-4/5 min-w-0 min-h-0 flex-col p-4">
           <header class="flex items-center justify-between border-neutral-900 pb-2 ">
@@ -77,9 +77,10 @@
           {/if}
         </section>
 
-        <aside class="flex w-1/5 min-h-0 min-w-0 flex-col {BORDER_STYLE} bg-slate-100 max-h-[75vh]">
-          <div class="flex items-center justify-between border-b border-neutral-300 px-3 py-2">
-            <h2 class="text-sm font-semibold {accentPalette.textDark} select-none">
+        <!-- Nearby keyframe -->
+        <aside class="flex w-1/5 min-h-0 min-w-0 flex-col {BORDER_STYLE} {accentPalette.bgSubtle} max-h-[82vh] select-none">
+          <div class="flex items-center justify-between border-b border-neutral-300 p-2">
+            <h2 class="text-sm font-semibold {accentPalette.textDark}">
               Nearby keyframes
             </h2>
           </div>
@@ -103,7 +104,7 @@
                     loading="lazy"
                   />
                   <!-- Small text writing the frame index -->
-                  <div class="absolute bottom-1 right-1 bg-black/75 text-white text-[10px] font-mono px-1 py-0.5 rounded">
+                  <div class="absolute bottom-1 right-1 bg-black/75 text-white text-xs font-mono p-1 rounded">
                     #{kf.frame_idx}
                   </div>
                 </button>
