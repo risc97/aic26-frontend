@@ -26,11 +26,12 @@
   interface Props {
     item: CardItem;
     accent: AccentColor;
-    mode: 'semantic' | 'transcript' | 'ocr' | 'video_id';
+    mode: 'semantic' | 'transcript' | 'ocr' | 'video_id' | 'detect';
     allowSubmit?: boolean;
     qaAnswer: string;
     actions?: CardAction[];
     lockedInLabel?: string;     // for multiple search
+    showFullKeyframe?: boolean;
     watchVideo?: (item: CardItem) => void;
   }
 
@@ -42,6 +43,7 @@
     qaAnswer = $bindable(''),
     actions,
     lockedInLabel = $bindable(''),
+    showFullKeyframe = false,
     watchVideo = () => {}
   }: Props = $props();
 
@@ -113,7 +115,7 @@
           class="group/id {BORDER_STYLE} truncate p-1 font-mono text-xl font-black {accentPalette.textDark}"
           title={`${videoId}-${keyframeId}`}
         >
-          {videoId}<span class="hidden group-hover/id:inline">-{keyframeId}</span>
+          {videoId}<span class={showFullKeyframe ? 'inline' : 'hidden group-hover/id:inline'}>-{keyframeId}</span>
         </span>
       </div>
 
@@ -158,10 +160,10 @@
     </div>
 
     <!-- Info -->
-    <div class="flex flex-wrap items-center justify-between gap-1 font-mono text-sm text-slate-700">
+    <div class="flex flex-wrap items-center justify-between gap-0.5 font-mono text-sm text-slate-700">
       {#if resolvedScore !== undefined}
         <span class="shrink-0 {BORDER_STYLE} bg-amber-100 p-0.5 text-sm font-bold font-mono text-amber-900">
-          S: {formattedScore}
+          {formattedScore}
         </span>
       {/if}
 
@@ -182,7 +184,7 @@
           class="flex w-full items-center justify-between text-sm font-bold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
           onclick={() => (isTranscriptExpanded = !isTranscriptExpanded)}
         >
-          <span class="select-none">💬 Transcript</span>
+          <span class="select-none">Transcript</span>
           <span class="text-sm font-medium text-slate-500">
             {isTranscriptExpanded ? 'Collapse' : 'Expand'}
           </span>
@@ -206,7 +208,7 @@
           class="flex w-full items-center justify-between text-sm font-bold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
           onclick={() => (isOcrExpanded = !isOcrExpanded)}
         >
-          <span class="select-none">🔍 OCR Match</span>
+          <span class="select-none">OCR</span>
           <span class="text-sm font-medium text-slate-500">
             {isOcrExpanded ? 'Collapse' : 'Expand'}
           </span>
@@ -248,7 +250,7 @@
       <div class="flex gap-1 pt-2">
         <button
           type="button"
-          class="flex flex-1 items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
+          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
           onclick={() => {
             const reviewItem: SingleReviewItem = {
               videoId: videoId,
@@ -258,13 +260,13 @@
             reviewQueue.addTop(reviewItem);
           }}
         >
-          <ArrowLineUpIcon size="16px" weight="bold" />
-          Add top
+          <ArrowLineUpIcon size="14px" weight="bold" />
+          <span class="hidden xl:inline">Add top</span>
         </button>
 
         <button
           type="button"
-          class="flex flex-1 items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
+          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
           onclick={() => {
             const reviewItem: SingleReviewItem = {
               videoId: videoId,
@@ -274,17 +276,17 @@
             reviewQueue.add(reviewItem);
           }}
         >
-          <PlusIcon size="16px" weight="bold" />
-          Add
+          <PlusIcon size="14px" weight="bold" />
+          <span class="hidden xl:inline">Add</span>
         </button>
 
         <button
           type="button"
-          class="flex flex-1 items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.amber.bg} {ACCENT_PALETTES.amber.hover} text-slate-100 text-sm font-bold {PRESSED_ANIM}"
+          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} {ACCENT_PALETTES.amber.bg} {ACCENT_PALETTES.amber.hover} text-slate-100 text-sm font-bold {PRESSED_ANIM}"
           onclick={() => console.log('Departure!')}
         >
-          <AirplaneTakeoffIcon size="16px" weight="bold" />
-          Submit
+          <AirplaneTakeoffIcon size="14px" weight="bold" />
+          <span class="hidden xl:inline">Submit</span>
         </button>
       </div>
     {/if}

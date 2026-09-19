@@ -21,7 +21,16 @@ class MultipleSearchStore {
     { id: 2, query: "" },
   ]);
   semanticModel = $state<'siglip' | 'siglip2' | 'pe'>('siglip2');
-  searchMode = $state<'semantic' | 'object_detect'>('semantic');
+  private _searchMode = $state<'semantic' | 'object_detect'>('semantic');
+  get searchMode() {
+    return this._searchMode;
+  }
+  set searchMode(value: 'semantic' | 'object_detect') {
+    if (this._searchMode !== value) {
+      this._searchMode = value;
+      this.resetView();
+    }
+  }
 
   // UI state
   showFilterDrawer = $state(false);
@@ -30,55 +39,115 @@ class MultipleSearchStore {
   exclusion = $state<string>("");
   exclusionArray = $derived(this.exclusion.split(',').map(s => s.trim()).filter(s => s.length > 0));
   limit = $state(100);
+  videoDialogOpen = $state(false);
+  qaAnswer = $state<string>('');
+
+  sequencePage = $state(1);
+  readonly sequencePageSize = 10;
 
   // Loading state
   isSearching = $state(false);
   errorMessage = $state<string | null>(null);
 
-  videoDialogOpen = $state(false);
-  qaAnswer = $state<string>('');
+  // Event state
+  eventPages = $state<number[]>([]);
+  readonly eventPageSize = 9;
+  eventFrameLockArray = $state<(TemporalMatch | null)[]>([null, null]);
+  eventLockedVideoId = $derived.by(() => {
+    let id = "";
+    for (const lock of this.eventFrameLockArray) {
+      if (lock) {
+        id = lock.video_id;
+        break;
+      }
+    }
+    return id;
+  });
+  allEventFilled(): boolean {
+    return this.eventFrameLockArray.every(item => item !== null);
+  }
 
   // Data state
   sequenceResultsPre = $state<TemporalItem[]>([]);
   sequenceResults = $derived.by(() => {
-    return this.sequenceResultsPre.filter(r => {
-      for (const exclusion of this.exclusionArray) {
-        if (exclusion.includes('-')) {
-          // Format: "video_id-keyframe_id" -> filter just that specific keyframe
-          const lastHyphenIndex = exclusion.lastIndexOf('-');
-          const vid = exclusion.substring(0, lastHyphenIndex);
-          const kid = exclusion.substring(lastHyphenIndex + 1);
+    return this.sequenceResultsPre.map(r => {
+      // Filter matches inside the sequence item
+      const filteredMatches = (r.matches ?? []).filter(match => {
+        for (const exclusion of this.exclusionArray) {
+          if (exclusion.includes('-')) {
+            const lastHyphenIndex = exclusion.lastIndexOf('-');
+            const vid = exclusion.substring(0, lastHyphenIndex);
+            const kid = exclusion.substring(lastHyphenIndex + 1);
 
-          if (
-            r.video_id === vid &&
-            'keyframe_id' in r &&
-            r.keyframe_id === kid
-          ) {
-            return false;
-          }
-        } else {
-          // Format: "video_id" -> filter the whole video
-          if (r.video_id === exclusion) {
-            return false;
+            if (match.video_id === vid && match.keyframe_id === kid) {
+              return false;
+            }
+          } else {
+            if (match.video_id === exclusion) {
+              return false;
+            }
           }
         }
+        return true;
+      });
+
+      return {
+        ...r,
+        matches: filteredMatches
+      };
+    }).filter(r => {
+      // Also filter out the whole video if a video-level exclusion matches
+      for (const exclusion of this.exclusionArray) {
+        if (!exclusion.includes('-') && r.video_id === exclusion) {
+          return false;
+        }
       }
-      return true;
-    })
+      return r.matches && r.matches.length > 0;
+    });
   });
-  eventResults = $derived.by(() =>
-    this.stages.map((stage, stageIndex): EventItem => ({
-      query: stage.query,
-      matches: this.sequenceResults.flatMap((result) => {
-        // Find the match belonging to this stage (0-indexed)
+  eventResults = $derived.by(() => {
+    const lockedCardIds = new Set(
+      this.eventFrameLockArray
+        .filter((card): card is TemporalMatch => card !== null)
+        .map((card) => `${card.video_id}-${card.keyframe_id}`)
+    );
+    return this.stages.map((stage, stageIndex): EventItem => {
+      const lockedCard = this.eventFrameLockArray[stageIndex];
+
+      // If this stage has a locked card, display only the locked card
+      if (lockedCard) {
+        return {
+          query: stage.query,
+          matches: [lockedCard]
+        };
+      }
+
+      const matches = this.sequenceResults.flatMap((result) => {
+        // Reorder cards to events
         const card = result.matches?.find((m) => m.stage === stageIndex);
-        return card ? [card] : [];
-      })
-    }))
-  );
-  eventFrameLockArray = $derived<(TemporalMatch | null)[]>(
-    Array(this.eventResults.length).fill("")
-  );
+        if(!card) return [];
+        // Skip if this card is currently locked into a different stage
+        if (lockedCardIds.has(`${card.video_id}-${card.keyframe_id}`)) {
+          return [];
+        }
+        // If a video lock is active, skip cards not belonging to that video
+        if (this.eventLockedVideoId !== "" && card.video_id !== this.eventLockedVideoId) {
+          return [];
+        }
+        /**
+         * But... we already filtered out excluded videos in sequenceResults
+         * What if we we locked in a filtered video?
+         * -> Disable the exclusion input when a video is locked in event view
+         */
+        return [card];
+      });
+
+      return {
+        query: stage.query,
+        matches
+      };
+    })
+});
 
   // Event view
   private _eventViewIndex = $state(0);
@@ -98,22 +167,46 @@ class MultipleSearchStore {
       id: this.nextStageId,
       query: ""
     });
-
+    this.eventPages.push(1);
     this.nextStageId += 1;
   }
 
   removeStage(id: number) {
     if (this.stages.length === 1) return;
+    const index = this.stages.findIndex(stage => stage.id === id);
     this.stages = this.stages.filter((stage) => stage.id !== id);
-    this.sequenceResultsPre = [];   //safest way to maintain data integrity
+    if (index !== -1) {
+      this.eventPages.splice(index, 1);
+    }
+    this.resetView();   //safest way to maintain data integrity
+  }
+
+  toggleLock(stageIndex: number, card: TemporalMatch) {
+    if (this.eventFrameLockArray[stageIndex]) {
+      this.eventFrameLockArray[stageIndex] = null;
+    } else {
+      this.eventFrameLockArray[stageIndex] = card;
+    }
+    this.eventPages = new Array(this.stages.length).fill(1);
+  }
+
+  clearLocks() {
+    this.eventFrameLockArray = this.eventFrameLockArray.map(() => null);
+    this.eventPages = new Array(this.stages.length).fill(1);
+  }
+
+  resetView() {
+    this.errorMessage = null;
+    this.sequenceResultsPre = [];
+    this.eventFrameLockArray = new Array(2).fill(null);
+    this.eventPages = new Array(this.stages.length).fill(1);
+    this.sequencePage = 1;
   }
 
   async handleSearch() {
     if (this.isSearching) return;
-
     this.isSearching = true;
-    this.errorMessage = null;
-    this.sequenceResultsPre = [];
+    this.resetView();
 
     try {
       const stages = this.stages.map((stage) => ({
@@ -125,20 +218,22 @@ class MultipleSearchStore {
       }
 
       if (this.searchMode === 'object_detect') {
-        throw new Error('Object detection search is not implemented yet.');
+        throw new Error(`${this.searchMode} is not implemented yet.`)
+      } else if (this.searchMode === 'semantic') {
+        const response = await api.queryTemporal({
+          stages,
+          model: this.semanticModel,
+          limit: Number(this.limit),
+        });
+
+        this.sequenceResultsPre = response.results ?? [];
+        this.sequenceResultsPre.sort((a, b) => b.score - a.score);
+        this.eventFrameLockArray = new Array(this.stages.length).fill(null);
+      } else {
+        throw new Error(`${this.searchMode} is not implemented yet.`);
       }
-
-      const response = await api.queryTemporal({
-        stages,
-        model: this.semanticModel,
-        limit: Number(this.limit),
-      });
-
-      this.sequenceResultsPre = response.results ?? [];
-      this.sequenceResultsPre.sort((a, b) => b.score - a.score);
     } catch (error) {
-      this.errorMessage =
-        error instanceof Error ? error.message : 'Search query failed';
+      this.errorMessage = error instanceof Error ? error.message : 'Search query failed';
     } finally {
       this.isSearching = false;
     }

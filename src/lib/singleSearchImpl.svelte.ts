@@ -7,7 +7,16 @@ class SingleSearchStore {
   // Search parameters & state
   query = $state('');
   limit = $state(100);
-  searchMode = $state<'semantic' | 'transcript' | 'ocr' | 'video_id'>('semantic');
+  private _searchMode = $state<'semantic' | 'transcript' | 'ocr' | 'video_id'>('semantic');
+  get searchMode() {
+    return this._searchMode;
+  }
+  set searchMode(value: 'semantic' | 'transcript' | 'ocr' | 'video_id') {
+    if (this._searchMode !== value) {
+      this._searchMode = value;
+      this.resetView();
+    }
+  }
   modelSemantic = $state<EmbeddingModel>('siglip'); // 'siglip' | 'siglip2' | 'pe'
   isTranscriptExact = $state(false);
   isSearchPhrase = $state(false);
@@ -89,12 +98,17 @@ class SingleSearchStore {
     );
   }
 
-  async handleSearch() {
+  resetView() {
     this.isSearching = true;
     this.errorMessage = null;
     this.resultRaw = [];
     this.resultSimilar = [];
-    this.currentPage = 1; // Reset to first page on new search
+    this.currentPage = 1;
+  }
+
+  async handleSearch() {
+    if(this.isSearching) return;
+    this.resetView();
 
     try {
       if (this.searchMode === 'semantic') {

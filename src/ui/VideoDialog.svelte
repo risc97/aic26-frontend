@@ -26,7 +26,21 @@
   let frameIndex = $state(0);
   let nearbyKeyframes = $state<Item[]>([]);
 
-  $inspect(nearbyKeyframes, "nearbyKeyframes");
+  // $inspect(nearbyKeyframes, "nearbyKeyframes");
+
+  function formatMilliseconds(ms: number): string {
+    const totalMs = Math.max(0, Math.floor(ms));
+
+    const minutes = Math.floor(totalMs / 60000);
+    const seconds = Math.floor((totalMs % 60000) / 1000);
+    const centiseconds = Math.floor((totalMs % 1000) / 10);
+
+    const mm = String(minutes).padStart(2, '0');
+    const ss = String(seconds).padStart(2, '0');
+    const cs = String(centiseconds).padStart(2, '0');
+
+    return `${mm}:${ss}.${cs}`;
+  }
 
   $effect(() => {
     if (open && item) {
@@ -57,12 +71,23 @@
       <div class="flex gap-1">
         <section class="flex w-4/5 min-w-0 min-h-0 flex-col p-4">
           <header class="flex items-center justify-between border-neutral-900 pb-2 ">
-            <Dialog.Title class="gap-1 flex items-center {accentPalette.textDark} font-mono">
-              <FilmStripIcon size="24px" />
-              <span class="text-xl font-bold">{item?.video_id}</span>
-              <div class="ml-4 h-6 w-24 p-1 {BORDER_STYLE} select-none text-sm flex items-center justify-center">
-                {item?.video_fps.toFixed(2)} fps
+            <Dialog.Title class="gap-2 flex items-center min-w-0 {accentPalette.textDark} font-mono">
+              <div class="flex items-center gap-2 shrink-0">
+                <FilmStripIcon size="24px" />
+                <span class="text-xl font-bold">{item?.video_id}</span>
+                <div class="h-6 w-24 p-1 {BORDER_STYLE} select-none text-sm flex items-center justify-center">
+                  {item?.video_fps.toFixed(2)} fps
+                </div>
               </div>
+
+              {#if item?.time_start_ms && item?.time_end_ms}
+              <div class="flex h-8 p-1 text-sm items-center gap-1 min-w-0 flex-1 select-none {accentPalette.bgSubtle} {accentPalette.textDark} rounded">
+                <span class="font-semibold shrink-0 whitespace-nowrap {ACCENT_PALETTES.amber.text}">
+                  Transcript ({formatMilliseconds(item?.time_start_ms)} - {formatMilliseconds(item?.time_end_ms)}):
+                </span>
+                <span class="truncate min-w-0" title={item?.text}>{item?.text}</span>
+              </div>
+              {/if}
             </Dialog.Title>
             <Dialog.Close class="{BORDER_STYLE} p-1 text-sm {PRESSED_ANIM}">
               <XIcon size="18px" weight="bold" />
