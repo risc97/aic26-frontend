@@ -1,6 +1,7 @@
 <script lang="ts">
   import HeaderNew from './ui/Header.svelte';
   import ConfigModal from './ui/ConfigModal.svelte';
+  import AuthModal from './ui/AuthModal.svelte'; // <-- Import AuthModal
   import SingleSearch from './ui/SingleSearch.svelte';
   import MultipleSearch from './ui/MultipleSearch.svelte';
   import Review from './ui/Review.svelte';
@@ -28,13 +29,14 @@
       <!-- Logs mode view placeholder -->
     {/if}
 
-    <!-- Review remains mounted: video buffer & state stay intact -->
+    <!-- Review remains mounted to reduce load -->
     <div class={mode === 'review' ? 'contents' : 'hidden'}>
       <Review isActive={mode === 'review'} />
     </div>
   </main>
 
-  <ConfigModal 
-    bind:open={isConfigOpen} 
-  />
+  <ConfigModal bind:open={isConfigOpen} />
+  
+  <!-- Add Auth Modal -->
+  <AuthModal />
 </div>
