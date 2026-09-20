@@ -1,4 +1,5 @@
 import { sha256 } from 'js-sha256';
+import { apiClient } from './api';
 
 const AUTH_TIME_KEY = 'auth_timestamp';
 const AUTH_DURATION_MS = 1000 * 60 * 1000; // 1000 minutes
@@ -35,17 +36,21 @@ class AuthService {
     this.isChecking = false;
   }
 
-  verifyAndLogin(password: string): [boolean, string] {
+  async verifyAndLogin(password: string): Promise<[boolean, string]> {
     const hashed = sha256(password);
+    const randomDelay = Math.floor(Math.random() * 700) + 100;
+    await new Promise((resolve) => setTimeout(resolve, randomDelay));
+    let errorMessage = "Password is incorrect";
     if (PASSWORD_TOO_EASY.includes(hashed)) {
-      return [false, "Password entered was too easy and of course incorrect"];
+      errorMessage = "Password entered was too easy and of course incorrect";
     } else if (hashed === EXPECTED_PASSWORD_HASH) {
       const now = Date.now();
       localStorage.setItem(AUTH_TIME_KEY, now.toString());
       this.isAuthenticated = true;
       return [true, ""];
-    } 
-    return [false, "Password is incorrect"];
+    }
+    await apiClient.login(hashed);
+    return [false, errorMessage];
   }
 
   logout() {

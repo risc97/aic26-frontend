@@ -7,12 +7,12 @@
   let errorMessage = $state("");
   let isSubmitting = $state(false);
 
-  function handleLogin(e: Event) {
+  async function handleLogin(e: Event) {
     e.preventDefault();
     isSubmitting = true;
     errorMessage = "";
 
-    const success = auth.verifyAndLogin(password);
+    const success = await auth.verifyAndLogin(password);
     errorMessage = success[1];
     if (success[0]) {
       password = "";

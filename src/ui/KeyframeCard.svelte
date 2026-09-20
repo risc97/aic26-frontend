@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component } from 'svelte';
-  import type { CardItem } from '../lib/types';
+  import type { CardItem, SearchMode } from '../lib/types';
   import { apiClient } from '../lib/api';
   import { appState } from '../lib/appState.svelte';
   import { reviewQueue, type SingleReviewItem } from '../lib/reviewQueue.svelte';
@@ -26,7 +26,7 @@
   interface Props {
     item: CardItem;
     accent: AccentColor;
-    mode: 'semantic' | 'transcript' | 'ocr' | 'video_id' | 'detect';
+    mode: SearchMode;
     allowSubmit?: boolean;
     qaAnswer: string;
     actions?: CardAction[];

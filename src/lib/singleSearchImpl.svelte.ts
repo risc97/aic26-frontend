@@ -1,5 +1,5 @@
 import { ApiClient } from './api';
-import type { Item, TranscriptItem, OcrItem, EmbeddingModel, TranscriptFlatItem } from './types';
+import type { SearchMode, Item, TranscriptItem, OcrItem, EmbeddingModel, TranscriptFlatItem } from './types';
 
 const api = new ApiClient();
 
@@ -7,11 +7,12 @@ class SingleSearchStore {
   // Search parameters & state
   query = $state('');
   limit = $state(100);
-  private _searchMode = $state<'semantic' | 'transcript' | 'ocr' | 'video_id'>('semantic');
+  uploadedFile = $state<File | null>(null);
+  private _searchMode = $state<SearchMode>('semantic');
   get searchMode() {
     return this._searchMode;
   }
-  set searchMode(value: 'semantic' | 'transcript' | 'ocr' | 'video_id') {
+  set searchMode(value: SearchMode) {
     if (this._searchMode !== value) {
       this._searchMode = value;
       this.resetView();
@@ -99,7 +100,6 @@ class SingleSearchStore {
   }
 
   resetView() {
-    this.isSearching = true;
     this.errorMessage = null;
     this.resultRaw = [];
     this.resultSimilar = [];
@@ -109,6 +109,7 @@ class SingleSearchStore {
   async handleSearch() {
     if(this.isSearching) return;
     this.resetView();
+    this.isSearching = true;
 
     try {
       if (this.searchMode === 'semantic') {
@@ -130,6 +131,12 @@ class SingleSearchStore {
         });
         
         this.resultRaw = this.flattenTranscripts(res.results ?? []);
+      } else if (this.searchMode === 'detect') {
+        const res = await api.queryDetect({
+          objects: [{ phrase: this.query }],
+          limit: Number(this.limit),
+        });
+        this.resultRaw = res.results ?? [];
       } else if (this.searchMode === 'ocr') {
         const res = await api.queryOcr({
           query: this.query,
@@ -143,6 +150,25 @@ class SingleSearchStore {
       }
     } catch (err: any) {
       this.errorMessage = err.message || 'Search query failed';
+    } finally {
+      this.isSearching = false;
+    }
+  }
+
+  async handleReverseSearch() {
+    if (this.isSearching) return;
+    if (!this.uploadedFile) return;
+    this.resetView();
+    this.isSearching = true;
+
+    try {
+      const res = await api.searchSimilarByImage(this.uploadedFile!, {
+        limit: Number(this.limit),
+        model: this.modelSemantic,
+      });
+      this.resultRaw = res.results ?? [];
+    } catch (err: any) {
+      this.errorMessage = err.message || 'Reverse search failed';
     } finally {
       this.isSearching = false;
     }

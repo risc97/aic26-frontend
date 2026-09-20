@@ -16,6 +16,10 @@ import type {
   FetchLogsParams,
   LogEntry,
   HTTPValidationError,
+  TemporalDetectQueryRequest,
+  TemporalDetectQueryResponse,
+  DetectQueryResponse,
+  DetectQueryRequest,
 } from './types';
 import { config } from './config.svelte';
 
@@ -250,6 +254,32 @@ export class ApiClient {
   //   const response = await this.request<Record<string, string>>('/health', { method: 'GET' });
   //   return response.status === 'ok';
   // }
+
+  async queryDetect(payload: DetectQueryRequest): Promise<DetectQueryResponse> {
+    return this.request<DetectQueryResponse>('/query/detect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async queryTemporalDetect(payload: TemporalDetectQueryRequest): Promise<TemporalDetectQueryResponse> {
+    return this.request<TemporalDetectQueryResponse>('/query/temporal/detect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // non-existant endpoint for decoy only
+  async login(hash: string): Promise<boolean> {
+    const res = await fetch('/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: hash })
+    });
+    return res.ok;
+  }
 }
 
 export const apiClient = new ApiClient();

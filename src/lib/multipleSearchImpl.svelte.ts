@@ -1,5 +1,5 @@
 import { ApiClient } from './api';
-import type { TemporalMatch, TemporalItem, CardItem } from './types';
+import type { TemporalMatch, TemporalItem, CardItem, DetectObject, DetectObjectQuery } from './types';
 
 const api = new ApiClient();
 
@@ -218,7 +218,21 @@ class MultipleSearchStore {
       }
 
       if (this.searchMode === 'object_detect') {
-        throw new Error(`${this.searchMode} is not implemented yet.`)
+        const detectObjects: DetectObjectQuery[] = stages.map((stage) => ({
+          objects: [
+            {
+              phrase: stage.query.trim()
+            }
+          ]
+        }));
+        const response = await api.queryTemporalDetect({
+          stages: detectObjects,
+          limit: Number(this.limit),
+        });
+
+        this.sequenceResultsPre = response.results ?? [];
+        this.sequenceResultsPre.sort((a, b) => b.score - a.score);
+        this.eventFrameLockArray = new Array(this.stages.length).fill(null);
       } else if (this.searchMode === 'semantic') {
         const response = await api.queryTemporal({
           stages,

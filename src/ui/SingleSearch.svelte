@@ -10,6 +10,9 @@
     SlidersHorizontalIcon,
     TrashIcon,
     TildeIcon,
+    BarcodeIcon,
+    ApertureIcon,
+    ArrowLineUpIcon,
   } from 'phosphor-svelte';
   import { BORDER_STYLE, ACCENT_PALETTES } from './common/CommonStyle';
   import MyDropdown from './common/MyDropdown.svelte';
@@ -24,6 +27,8 @@
     { value: 'transcript', label: 'Transcript', icon: ArticleIcon, search_placeholder: "Query: 'add 2 tbps of sugar'..." },
     { value: 'ocr', label: 'OCR', icon: ScanIcon, search_placeholder: "Query: 'text in the image'..." },
     { value: 'video_id', label: 'Video ID', icon: TelevisionIcon, search_placeholder: "Video ID (eg. L21_V005)" },
+    { value: 'detect', label: 'Detect', icon: BarcodeIcon, search_placeholder: "Query: 'dinosaur'..." },
+    { value: 'reverse_search', label: 'Reverse Search', icon: ApertureIcon, search_placeholder: "Nothing to type into..." },
   ];
 
   const MODEL_OPTIONS = [
@@ -34,13 +39,22 @@
 
   function handleKeyDown(e: KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
+      e?.preventDefault();
+      handleSearch();
+    }
+  }
+
+  function handleSearch() {
+    if(singleSearch.searchMode === 'reverse_search' && singleSearch.uploadedFile) {
+      singleSearch.handleReverseSearch();
+    } else {
       singleSearch.handleSearch();
     }
   }
 
   let selectedVideo = $state<CardItem | null>(null);
   let videoDialogOpen = $state(false);
+  let fileInput = $state<HTMLInputElement | null>(null);
 
   function openVideo(item: CardItem) {
     selectedVideo = item;
@@ -48,19 +62,19 @@
   }
 
 
-  // $inspect(singleSearch.searchMode)
+  $inspect(singleSearch.uploadedFile, "uploaded file changed")
 </script>
 
 <div class="min-h-0 flex flex-1 flex-col">
   <!-- Search bar  -->
   <div class="flex gap-1 p-2">
     <!-- Mode Selection -->
-    <MyDropdown items={MODE_OPTIONS} bind:value={singleSearch.searchMode} width="w-36" height="h-11" accent="blue" strong={true}/>
+    <MyDropdown items={MODE_OPTIONS} bind:value={singleSearch.searchMode} width="w-48" height="h-11" accent="blue" strong={true}/>
 
     <!-- Input field -->
     <div class="inline-flex w-full items-center overflow-hidden {BORDER_STYLE} {ACCENT_PALETTES.blue.focusRing} px-2 gap-2 transition-all">
       
-      {#if singleSearch.searchMode === 'semantic'}
+      {#if singleSearch.searchMode === 'semantic' || singleSearch.searchMode === 'reverse_search'}
         <MyDropdown items={MODEL_OPTIONS} bind:value={singleSearch.modelSemantic} width="w-24" accent="blue"/>
       {:else if singleSearch.searchMode === 'transcript'}
         <MyCheckbox label="Exact" bind:checked={singleSearch.isTranscriptExact}/>
@@ -68,11 +82,37 @@
       {#if singleSearch.isTranscriptExact || singleSearch.searchMode === 'ocr'}
         <MyCheckbox label="Phrase" bind:checked={singleSearch.isSearchPhrase}/>
       {/if}
+      {#if singleSearch.searchMode === 'reverse_search'}
+        <input
+          type="file"
+          accept="image/*"
+          class="hidden"
+          bind:this={fileInput}
+          onchange={(e) => {
+            const file = e.currentTarget.files?.[0];
+            singleSearch.query = '';
+            if (file) {
+              singleSearch.uploadedFile = file;
+            } else {
+              singleSearch.uploadedFile = null;
+            }
+          }}
+        />
+        <button
+          type="button"
+          onclick={() => fileInput?.click()}
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 {BORDER_STYLE} transition-all shrink-0"
+        >
+          <ArrowLineUpIcon size="16px" weight="bold" />
+          {singleSearch.uploadedFile ? singleSearch.uploadedFile.name : 'Upload Image'}
+        </button>
+      {/if}
       <input
-        class="h-10 min-w-0 flex-1 px-2 bg-transparent text-lg font-medium text-slate-900 placeholder:text-slate-400 outline-none"
+        class="h-10 min-w-0 flex-1 px-2 bg-transparent text-lg font-medium {singleSearch.searchMode === 'reverse_search' ? 'italic text-slate-700' : 'text-slate-900'} placeholder:text-slate-400 outline-none"
         placeholder={MODE_OPTIONS.find((o) => o.value === singleSearch.searchMode)?.search_placeholder}
         bind:value={singleSearch.query}
-        onkeydown={handleKeyDown}
+        onkeydown={(e) => handleKeyDown(e)}
+        disabled={singleSearch.searchMode === 'reverse_search'}
       />
     </div>
 
@@ -90,7 +130,7 @@
     <button
       type="submit"
       disabled={singleSearch.isSearching}
-      onclick={() => singleSearch.handleSearch()}
+      onclick={() => handleSearch()}
       class="flex h-11 w-11 shrink-0 items-center justify-center {BORDER_STYLE} bg-blue-600 text-white hover:bg-blue-700 outline-none active:scale-[0.95] transition-all"
     >
       {#if singleSearch.isSearching}

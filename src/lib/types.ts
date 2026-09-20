@@ -1,14 +1,79 @@
 export type EmbeddingModel = 'siglip' | 'siglip2' | 'pe';
 export type AllModelTypes = 'siglip' | 'siglip2' | 'gte' | 'pe';
 
-export type QueryMode =
+export type LogQueryMode =
   | 'keyframe'
   | 'transcript_semantic'
   | 'transcript_exact'
   | 'ocr_exact'
-  | 'temporal';
+  | 'temporal'
+  | 'detect'
+  | 'temporal_detect';
+
+export type SearchMode = 'semantic' | 'transcript' | 'ocr' | 'video_id' | 'detect' | 'reverse_search';
 
 // --- Base Entities ---
+
+export interface DetectObject {
+  phrase: string;
+  min_count?: number;
+  min_score?: number;
+  region?: 'left' | 'right' | 'center' | 'top' | 'bottom' | null;
+  min_area?: number;
+  max_area?: number;
+}
+
+export interface DetectObjectQuery {
+  objects: DetectObject[];
+}
+
+export interface DetectPrefilter {
+  query: string;
+  model?: EmbeddingModel;
+  limit?: number;
+}
+
+export interface DetectQueryRequest {
+  objects: DetectObject[];
+  limit?: number;
+  model?: 'owlv2-base' | 'owlv2-large';
+  nms_iou?: number;
+  prefilter?: DetectPrefilter | null;
+}
+
+export interface DetectItem extends Item {
+  counts?: number[];
+  boxes?: number[][][]; // [object][box] = [x0, y0, x1, y1, score]
+}
+
+export interface DetectQueryResponse {
+  request_id: string;
+  mode: 'detect';
+  model: 'owlv2-base' | 'owlv2-large';
+  total?: number;
+  results?: DetectItem[];
+}
+
+export interface TemporalDetectQueryRequest {
+  stages: DetectObjectQuery[];
+  limit?: number;
+  model?: 'owlv2-base' | 'owlv2-large';
+  nms_iou?: number;
+  r?: number;
+  rrf_k?: number;
+  weights?: number[] | null;
+  max_gap_ms?: number | null;
+  iou_threshold?: number;
+  chains_per_video?: number;
+}
+
+export interface TemporalDetectQueryResponse {
+  request_id: string;
+  mode: 'temporal_detect';
+  model: 'owlv2-base' | 'owlv2-large';
+  total?: number;
+  results?: TemporalItem[];
+}
 
 export interface Item {
   keyframe_id: string;
@@ -185,7 +250,7 @@ export interface LogEntry {
   timestamp: string | null;
   query: string;
   limit: number;
-  mode: QueryMode;
+  mode: LogQueryMode;
   model?: AllModelTypes | null;
   results?: (Item | TranscriptItem | OcrItem | TemporalItem)[];
   total?: number;

@@ -5,38 +5,41 @@
   import SingleSearch from './ui/SingleSearch.svelte';
   import MultipleSearch from './ui/MultipleSearch.svelte';
   import Review from './ui/Review.svelte';
+    import { auth } from './lib/auth.svelte';
 
   let mode = $state('single');
   let isConfigOpen = $state(false);
 </script>
 
-<div class="h-screen flex flex-col overflow-hidden bg-slate-50">
-  <div class="sticky top-0 z-30">
-    <HeaderNew 
-      bind:mode={mode} 
-      onOpenConfigModal={() => isConfigOpen = true} 
-    />
-  </div>
-
-  <main class="min-h-0 flex-1 flex flex-col px-2 py-4 overflow-y-scroll">
-    {#if mode === 'single'}
-      <SingleSearch />
-    {:else if mode === 'multiple'}
-      <MultipleSearch />
-    <!-- {:else if mode === 'review'} -->
-      <!-- <Review /> -->
-    {:else if mode === 'logs'}
-      <!-- Logs mode view placeholder -->
-    {/if}
-
-    <!-- Review remains mounted to reduce load -->
-    <div class={mode === 'review' ? 'contents' : 'hidden'}>
-      <Review isActive={mode === 'review'} />
+<div inert={!auth.isAuthenticated ? true : undefined} class="min-h-screen">
+  <div class="h-screen flex flex-col overflow-hidden bg-slate-50">
+    <div class="sticky top-0 z-30">
+      <HeaderNew 
+        bind:mode={mode} 
+        onOpenConfigModal={() => isConfigOpen = true} 
+      />
     </div>
-  </main>
 
-  <ConfigModal bind:open={isConfigOpen} />
-  
-  <!-- Add Auth Modal -->
-  <AuthModal />
+    <main class="min-h-0 flex-1 flex flex-col px-2 py-4 overflow-y-scroll">
+      {#if mode === 'single'}
+        <SingleSearch />
+      {:else if mode === 'multiple'}
+        <MultipleSearch />
+      <!-- {:else if mode === 'review'} -->
+        <!-- <Review /> -->
+      {:else if mode === 'logs'}
+        <!-- Logs mode view placeholder -->
+      {/if}
+
+      <!-- Review remains mounted to reduce load -->
+      <div class={mode === 'review' ? 'contents' : 'hidden'}>
+        <Review isActive={mode === 'review'} />
+      </div>
+    </main>
+
+    <ConfigModal bind:open={isConfigOpen} />
+    
+    <!-- Add Auth Modal -->
+    <AuthModal />
+  </div>
 </div>
