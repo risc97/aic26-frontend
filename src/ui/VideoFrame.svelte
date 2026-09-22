@@ -158,7 +158,7 @@
       <input
         id={`answer-${videoId}-${frameIdx}`}
         type="text"
-        class="w-full bg-white p-1 text-sm text-slate-800 placeholder:text-slate-400 {accentPalette.focusRing} rounded focus:outline-none"
+        class="w-full bg-white p-0.5 text-sm text-slate-800 placeholder:text-slate-400 {accentPalette.focusRing} rounded focus:outline-none"
         placeholder="Type the answer for this frame..."
         disabled={qaReadonly}
         bind:value={qaAnswer}

@@ -11,7 +11,8 @@ export const ACCENT_PALETTES = {
     highlight: "data-[highlighted]:bg-blue-50 data-[highlighted]:text-blue-700",
     focusRing: "focus-within:ring-1 focus-within:ring-blue-600 focus-within:border-blue-600",
     text: "text-blue-700",
-    textDark: "text-blue-900"
+    textDark: "text-blue-900",
+    ring: "ring-3 ring-blue-600",
   },
   rose: {
     bg: "bg-rose-600",
@@ -21,7 +22,8 @@ export const ACCENT_PALETTES = {
     highlight: "data-[highlighted]:bg-rose-50 data-[highlighted]:text-rose-700",
     focusRing: "focus-within:ring-1 focus-within:ring-rose-600 focus-within:border-rose-600",
     text: "text-rose-700",
-    textDark: "text-rose-900"
+    textDark: "text-rose-900",
+    ring: "ring-3 ring-rose-600"
   },
   emerald: {
     bg: "bg-emerald-600",
@@ -31,7 +33,8 @@ export const ACCENT_PALETTES = {
     highlight: "data-[highlighted]:bg-emerald-50 data-[highlighted]:text-emerald-700",
     focusRing: "focus-within:ring-1 focus-within:ring-emerald-600 focus-within:border-emerald-600",
     text: "text-emerald-700",
-    textDark: "text-emerald-900"
+    textDark: "text-emerald-900",
+    ring: "ring-3 ring-emerald-600"
   },
   amber: {
     bg: "bg-amber-600",
@@ -41,7 +44,8 @@ export const ACCENT_PALETTES = {
     highlight: "data-[highlighted]:bg-amber-50 data-[highlighted]:text-amber-700",
     focusRing: "focus-within:ring-1 focus-within:ring-amber-600 focus-within:border-amber-600",
     text: "text-amber-700",
-    textDark: "text-amber-900"
+    textDark: "text-amber-900",
+    ring: "ring-3 ring-amber-600"
   },
 } as const;
 

@@ -23,8 +23,10 @@
   const accentPalette = ACCENT_PALETTES[accent];
 
   let isLooping = $state(false);
+  let runOnce = $state(false);
   let frameIndex = $state(0);
   let nearbyKeyframes = $state<Item[]>([]);
+  let scrollContainer = $state<HTMLDivElement | null>(null);
 
   // $inspect(nearbyKeyframes, "nearbyKeyframes");
 
@@ -43,23 +45,38 @@
   }
 
   $effect(() => {
-    if (open && item) {
-      frameIndex = item.frame_idx;
+    if (!open) {
+      runOnce = false;
+      return;
+    }
+    if (!item) return;
 
-      // Load 30 nearby keyframes before and after
-      if (item.video_id) {
-        const currentKf = item.keyframe_id;
-        apiClient.listKeyframes(item.video_id)
-          .then((res) => {
-            const allKeyframes = res.keyframes ?? [];
-            nearbyKeyframes = allKeyframes.filter(
-              (kf) => Math.abs(Number(kf.keyframe_id) - Number(currentKf)) <= 30
-            );
-          })
-          .catch(() => {
-            nearbyKeyframes = [];
-          });
-      }
+    frameIndex = item.frame_idx;
+
+    // Load 30 nearby keyframes before and after
+    if (item.video_id) {
+      const currentKf = item.keyframe_id;
+      apiClient.listKeyframes(item.video_id)
+        .then((res) => {
+          const allKeyframes = res.keyframes ?? [];
+          nearbyKeyframes = allKeyframes.filter(
+            (kf) => Math.abs(Number(kf.keyframe_id) - Number(currentKf)) <= 30
+          );
+        })
+        .catch(() => {
+          nearbyKeyframes = [];
+        });
+    }
+  });
+
+  $effect(() => {
+    // Auto scroll the nearby keyframes list to the current frame index
+    if (open && nearbyKeyframes.length > 0 && scrollContainer && !runOnce) {
+      runOnce = true;
+      setTimeout(() => {
+        const activeEl = scrollContainer?.querySelector(`[data-frame-idx="${frameIndex}"]`);
+        activeEl?.scrollIntoView({ block: 'center', behavior: 'auto' });
+      }, 50);
     }
   });
 </script>
@@ -67,9 +84,9 @@
 <Dialog.Root bind:open>
   <Dialog.Portal>
     <Dialog.Overlay class="fixed inset-0 z-50 backdrop-blur-xs transition-opacity" />
-    <Dialog.Content class="{BORDER_STYLE} fixed top-1/2 left-1/2 z-50 w-[95vw] max-w-[85vw] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-4 shadow-lg focus:outline-none">
-      <div class="flex gap-1">
-        <section class="flex w-4/5 min-w-0 min-h-0 flex-col p-4">
+    <Dialog.Content class="flex flex-col max-h-[90vh] overflow-hidden {BORDER_STYLE} fixed top-1/2 left-1/2 z-50 w-[85vw] max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-4 shadow-lg focus:outline-none">
+      <div class="flex min-h-0 flex-1 items-stretch gap-1">
+        <section class="flex w-3/4 min-w-0 min-h-0 flex-col p-4">
           <header class="flex items-center justify-between border-neutral-900 pb-2 ">
             <Dialog.Title class="gap-2 flex items-center min-w-0 {accentPalette.textDark} font-mono">
               <div class="flex items-center gap-2 shrink-0">
@@ -103,19 +120,20 @@
         </section>
 
         <!-- Nearby keyframe -->
-        <aside class="flex w-1/5 min-h-0 min-w-0 flex-col {BORDER_STYLE} {accentPalette.bgSubtle} max-h-[82vh] select-none">
+        <aside class="flex w-1/4 min-h-0 min-w-0 flex-col {BORDER_STYLE} {accentPalette.bgSubtle} select-none">
           <div class="flex items-center justify-between border-b border-neutral-300 p-2">
             <h2 class="text-sm font-semibold {accentPalette.textDark}">
               Nearby keyframes
             </h2>
           </div>
 
-          <div class="min-h-0 flex-1 overflow-y-auto p-3">
-            <div class="flex flex-col gap-3">
+          <div bind:this={scrollContainer} class="min-h-0 flex-1 overflow-y-auto p-3 self-stretch">
+            <div class="grid grid-cols-2 gap-1.5">
               {#each nearbyKeyframes as kf}
                 <button
                   type="button"
-                  class="relative group block overflow-hidden rounded bg-black/5 {BORDER_STYLE} {PRESSED_ANIM} text-left"
+                  data-frame-idx={kf.frame_idx}
+                  class="relative group block overflow-hidden rounded {PRESSED_ANIM} text-left {kf.frame_idx === frameIndex ? accentPalette.ring : ''}"
                   onclick={() => {
                     if (item) {
                       frameIndex = kf.frame_idx;
@@ -128,6 +146,9 @@
                     class="w-full h-auto object-contain block"
                     loading="lazy"
                   />
+                  {#if kf.frame_idx !== frameIndex}
+                  <div class="absolute inset-0 bg-black/40"></div>
+                  {/if}
                   <!-- Small text writing the frame index -->
                   <div class="absolute bottom-1 right-1 bg-black/75 text-white text-xs font-mono p-1 rounded">
                     #{kf.frame_idx}
