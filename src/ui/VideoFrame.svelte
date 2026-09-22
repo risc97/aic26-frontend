@@ -53,7 +53,7 @@
   
   let paused = $state(true);
   let currentTime = $state(0);
-  let currentFrameIdx = $derived(Math.floor(currentTime * fps));
+  let currentFrameIdx = $derived(Math.round(currentTime * fps));
   let duration = $state(0);
 
   // Continuous hold-to-seek logic
