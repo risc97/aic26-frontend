@@ -304,24 +304,42 @@
         <Tabs.List class="flex {BORDER_STYLE} bg-slate-100 p-1">
           <Tabs.Trigger
             value="list"
-            class="flex items-center gap-1 px-2 py-1 text-xs font-semibold transition-colors {PRESSED_ANIM} outline-none data-[state=active]:bg-white data-[state=active]:text-emerald-700"
+            class="flex items-center justify-center gap-1 p-1 text-sm transition-colors w-24 {PRESSED_ANIM} outline-none data-[state=active]:bg-white data-[state=active]:text-emerald-700"
           >
-            <ListIcon size="14px" weight="bold" />
+            <ListIcon size="16px" weight="bold" />
             List
           </Tabs.Trigger>
 
           <Tabs.Trigger
             value="raw"
-            class="flex items-center gap-1 px-2 py-1 text-xs font-semibold transition-colors {PRESSED_ANIM} outline-none data-[state=active]:bg-white data-[state=active]:text-emerald-700"
+            class="flex items-center justify-center gap-1 p-1 text-sm transition-colors w-24 {PRESSED_ANIM} outline-none data-[state=active]:bg-white data-[state=active]:text-emerald-700"
           >
-            <FileTextIcon size="14px" weight="bold" />
+            <FileTextIcon size="16px" weight="bold" />
             Raw
           </Tabs.Trigger>
         </Tabs.List>
       </Tabs.Root>
     </header>
     <!-- 2: Control -->
-    <div class="flex items-center justify-between gap-2 border-b border-slate-900 p-1 bg-slate-50 select-none">
+    <div class="flex items-center justify-between gap-2 border-slate-900 p-1 bg-slate-50 select-none">
+      <div class="flex items-center gap-2">
+        <label class="flex h-7 px-3 items-center justify-center gap-1.5 bg-white {BORDER_STYLE} {emerald.textDark} {emerald.hoverSubtle} text-xs font-semibold {PRESSED_ANIM} cursor-pointer select-none">
+          <UploadSimpleIcon size="14px" weight="bold" />
+          Upload CSV
+          <input type="file" accept=".txt,.csv" class="hidden" onchange={handleUploadCsv} />
+        </label>
+        {#if reviewQueue.items.length > 0}
+          <button
+            type="button"
+            onclick={handleClear}
+            class="flex h-7 px-3 items-center justify-center gap-1.5 bg-white {BORDER_STYLE} {ACCENT_PALETTES.rose.textDark} {ACCENT_PALETTES.rose.hoverSubtle} text-xs font-semibold {PRESSED_ANIM} select-none"
+            title="Clear queue"
+          >
+            <TrashIcon size="14px" weight="bold" />
+            Clear
+          </button>
+        {/if}
+      </div>
       <div class="flex items-center gap-2">
         <button
           type="button"
@@ -337,25 +355,6 @@
             Copy
           {/if}
         </button>
-        {#if reviewQueue.items.length > 0}
-          <button
-            type="button"
-            onclick={handleClear}
-            class="flex h-7 px-3 items-center justify-center gap-1.5 bg-white {BORDER_STYLE} {ACCENT_PALETTES.rose.textDark} {ACCENT_PALETTES.rose.hoverSubtle} text-xs font-semibold {PRESSED_ANIM} select-none"
-            title="Clear queue"
-          >
-            <TrashIcon size="14px" weight="bold" />
-            Clear
-          </button>
-        {/if}
-      </div>
-
-      <div class="flex items-center gap-2">
-        <label class="flex h-7 px-3 items-center justify-center gap-1.5 bg-white {BORDER_STYLE} {emerald.textDark} {emerald.hoverSubtle} text-xs font-bold {PRESSED_ANIM} cursor-pointer select-none">
-          <UploadSimpleIcon size="14px" weight="bold" />
-          Upload CSV
-          <input type="file" accept=".txt,.csv" class="hidden" onchange={handleUploadCsv} />
-        </label>
       </div>
     </div>
     <!-- 3: View -->
