@@ -57,6 +57,10 @@ export class ApiClient {
     return config.baseUrl.replace(/\/+$/, '');
   }
 
+  private get mediaUrl(): string {
+    return config.mediaUrl.replace(/\/+$/, '');
+  }
+
   private buildUrl(path: string, params?: Record<string, unknown>): string {
     const url = new URL(`${this.baseUrl}${path}`);
     if (params) {
@@ -67,6 +71,45 @@ export class ApiClient {
       });
     }
     return url.toString();
+  }
+
+  private buildMediaUrl(path: string, params?: Record<string, unknown>): string {
+    const url = new URL(`${this.mediaUrl}${path}`);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+    return url.toString();
+  }
+
+  private async requestMedia<T>(
+    path: string,
+    options: RequestInit = {},
+    params?: Record<string, unknown>
+  ): Promise<T> {
+    const url = this.buildMediaUrl(path, params);
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...this.headers,
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      let validationError: HTTPValidationError | undefined;
+      try {
+        validationError = await response.json();
+      } catch {
+        // Body was not JSON
+      }
+      throw new ApiError(response.status, response.statusText, validationError);
+    }
+
+    return response.json() as Promise<T>;
   }
 
   private async request<T>(
@@ -121,7 +164,7 @@ export class ApiClient {
     if (mockConfig.enabled) {
       return generateMockImageUrl(videoId, keyframeId);
     }
-    return this.buildUrl(
+    return this.buildMediaUrl(
       `/keyframe/${encodeURIComponent(videoId)}/${encodeURIComponent(keyframeId)}`
     );
   }
@@ -140,7 +183,7 @@ export class ApiClient {
   }
 
   getVideoStreamUrl(videoId: string): string {
-    return this.buildUrl(`/video/${encodeURIComponent(videoId)}`);
+    return this.buildMediaUrl(`/video/${encodeURIComponent(videoId)}`);
   }
 
   async getVideoFps(videoId: string): Promise<number | null> {
