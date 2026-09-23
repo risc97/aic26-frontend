@@ -35,7 +35,7 @@ class MultipleSearchStore {
   // Advanced temporal-search parameters
   recallDepth = $state(100);
   chainsPerVideo = $state(1);
-  prfK = $state(60);
+  rrfK = $state(60);
   maxGapSeconds = $state(120);
   iouThreshold = $state(0.5);
   showWeightsDrawer = $state(true);
@@ -224,10 +224,10 @@ class MultipleSearchStore {
       limit: Number(this.limit),
       r: Number(this.recallDepth),
       chains_per_video: Number(this.chainsPerVideo),
-      rrf_k: Number(this.prfK),
+      rrf_k: Number(this.rrfK),
       max_gap_ms: Number(this.maxGapSeconds) * 1000,
       iou_threshold: Number(this.iouThreshold),
-      weights: this.weightsEnabled
+      weights: this.showWeightsDrawer
         ? this.stageWeights.map(weight => Number(weight))
         : null,
     };

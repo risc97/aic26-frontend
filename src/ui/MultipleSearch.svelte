@@ -477,8 +477,8 @@
 
           <MyInputbox
             type="number"
-            label="PRF k"
-            bind:value={multipleSearch.prfK}
+            label="RRF k"
+            bind:value={multipleSearch.rrfK}
             min="1"
             accent="rose"
             layout="vertical"
