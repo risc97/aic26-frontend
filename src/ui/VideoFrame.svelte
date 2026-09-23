@@ -24,7 +24,7 @@
     videoId: string;
     frameIdx: number;
     fps?: number;
-    qaReadonly?: boolean;
+    qaHidden?: boolean;
     qaAnswer?: string;
     isActive?: boolean;   // Parent may hide instead destroy, pass this to pause playback
   }
@@ -34,12 +34,14 @@
     videoId = '',
     frameIdx = $bindable(0),
     fps = $bindable(0),
-    qaReadonly = false,
+    qaHidden = false,
     qaAnswer = $bindable(''),
     isActive = true
   }: Props = $props();
 
   $inspect(fps, 'fps');
+
+  let wasActive = $state(isActive);
 
   let accentPalette = $derived(ACCENT_PALETTES[accent]);
 
@@ -94,38 +96,56 @@
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}.${fraction.toString().padStart(2, '0')}`;
   }
 
+  // Load the video frame and detect FPS when videoId changes.
   $effect(() => {
-    if (videoElement && fps > 0 && frameIdx >= 0) {
-      videoElement.currentTime = frameIdx / fps;
-      videoElement.play().catch(() => {
-        // Browser may block autoplay
-      });
-    }
-    
-    // Parent may hide instead destroy, pass this to pause playback
-    if (!isActive) {
-      paused = true;
+    const currentId = videoId;
+
+    if (!currentId) {
+      fps = 0;
+      return;
     }
 
-    // Dedicated effect strictly for fetching FPS when videoId changes
-    const currentId = videoId;
-    if (!currentId) return;
     let cancelled = false;
 
     (async () => {
       try {
         const fetchedFps = await apiClient.getVideoFps(currentId);
+
         if (!cancelled) {
           fps = fetchedFps ?? 0;
         }
-      } catch (err) {
-        if (!cancelled) fps = 0;
+      } catch {
+        if (!cancelled) {
+          fps = 0;
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
+  });
+
+  // Load and play a newly selected frame.
+  $effect(() => {
+    if (videoElement && fps > 0 && frameIdx >= 0) {
+      videoElement.currentTime = frameIdx / fps;
+      videoElement.play().catch(() => {
+        // Browser may block autoplay.
+      });
+    }
+  });
+
+  // Pause when the parent tab becomes inactive.
+  // Do not resume automatically when it becomes active again.
+  $effect(() => {
+    if (!videoElement) return;
+
+    if (wasActive && !isActive) {
+      videoElement.pause();
+    }
+
+    wasActive = isActive;
   });
 </script>
 
@@ -160,7 +180,6 @@
         type="text"
         class="w-full bg-white p-0.5 text-sm text-slate-800 placeholder:text-slate-400 {accentPalette.focusRing} rounded focus:outline-none"
         placeholder="Type the answer for this frame..."
-        disabled={qaReadonly}
         bind:value={qaAnswer}
       />
     </div>
@@ -230,6 +249,7 @@
         <TargetIcon size="18px" weight="bold"/>
         <span>#{frameIdx} ({displayTime(frameIdx / fps)})</span>
       </button>
+      {#if !qaHidden}
       <Toggle.Root
         pressed={appState.qaEnabled}
         onPressedChange={(enabled) => (appState.qaEnabled = enabled)}
@@ -240,6 +260,7 @@
         <QuestionIcon size="18px" weight="bold" />
         QA
       </Toggle.Root>
+      {/if}
     </div>
 
     <!-- Right control area -->

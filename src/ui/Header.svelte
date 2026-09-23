@@ -45,10 +45,10 @@
 </script>
 
 <header class="z-20 shrink-0 border-b-2 border-neutral-900 bg-white select-none transition-colors duration-200">
-  <div class="flex w-full items-center justify-between gap-4 px-5 py-1.5">
+  <div class="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-1.5">
 
     <!-- Left: Brand -->
-    <div class="flex shrink-0 items-center gap-2">
+    <div class="flex shrink-0 items-center gap-2 justify-self-start">
       <div class={`flex h-11 w-11 shrink-0 items-center justify-center ${BORDER_STYLE} text-white transition-colors duration-200 ${logoBg}`}>
         <CpuIcon size="24px"/>
       </div>
@@ -56,7 +56,7 @@
     </div>
 
     <!-- Center: Mode Switcher -->
-    <div class="flex shrink-0 items-center gap-2">
+    <div class="flex shrink-0 items-center justify-self-center gap-2">
       <Tabs.Root 
         value={mode} 
         onValueChange={(val) => {
@@ -95,7 +95,8 @@
     </div>
 
     <!-- Right: Config & Status -->
-    <div class="flex shrink-0 items-center gap-2">
+    <div class="flex shrink-0 items-center gap-2 justify-self-end">
+    {#if mode === 'single' || mode === 'multiple'}
       <Toggle.Root
         pressed={appState.qaEnabled}
         onPressedChange={(enabled) => (appState.qaEnabled = enabled)}
@@ -106,6 +107,7 @@
         <QuestionIcon size="18px" weight="bold" />
         QA
       </Toggle.Root>
+    {/if}
       <Tooltip.Provider>
         <Tooltip.Root>
           <Tooltip.Trigger

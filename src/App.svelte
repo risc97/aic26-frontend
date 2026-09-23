@@ -1,7 +1,7 @@
 <script lang="ts">
   import HeaderNew from './ui/Header.svelte';
   import ConfigModal from './ui/ConfigModal.svelte';
-  import AuthModal from './ui/AuthModal.svelte'; // <-- Import AuthModal
+  import AuthModal from './ui/AuthModal.svelte';
   import SingleSearch from './ui/SingleSearch.svelte';
   import MultipleSearch from './ui/MultipleSearch.svelte';
   import Review from './ui/Review.svelte';
