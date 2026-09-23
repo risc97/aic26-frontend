@@ -32,6 +32,15 @@ class MultipleSearchStore {
     }
   }
 
+  // Advanced temporal-search parameters
+  recallDepth = $state(100);
+  chainsPerVideo = $state(1);
+  prfK = $state(60);
+  maxGapSeconds = $state(120);
+  iouThreshold = $state(0.5);
+  showWeightsDrawer = $state(true);
+  stageWeights = $state<number[]>([1, 1]);
+
   // UI state
   showFilterDrawer = $state(false);
   allowSingleSubmit = $state(false);
@@ -167,6 +176,7 @@ class MultipleSearchStore {
       id: this.nextStageId,
       query: ""
     });
+    this.stageWeights.push(1);
     this.eventPages.push(1);
     this.nextStageId += 1;
   }
@@ -177,6 +187,7 @@ class MultipleSearchStore {
     this.stages = this.stages.filter((stage) => stage.id !== id);
     if (index !== -1) {
       this.eventPages.splice(index, 1);
+      this.stageWeights.splice(index, 1);
     }
     this.resetView();   //safest way to maintain data integrity
   }
@@ -201,12 +212,25 @@ class MultipleSearchStore {
     this.eventFrameLockArray = new Array(2).fill(null);
     this.eventPages = new Array(this.stages.length).fill(1);
     this.sequencePage = 1;
+    this.stageWeights = new Array(this.stages.length).fill(1);
   }
 
   async handleSearch() {
     if (this.isSearching) return;
     this.isSearching = true;
     this.resetView();
+
+    const temporalParams = {
+      limit: Number(this.limit),
+      r: Number(this.recallDepth),
+      chains_per_video: Number(this.chainsPerVideo),
+      rrf_k: Number(this.prfK),
+      max_gap_ms: Number(this.maxGapSeconds) * 1000,
+      iou_threshold: Number(this.iouThreshold),
+      weights: this.weightsEnabled
+        ? this.stageWeights.map(weight => Number(weight))
+        : null,
+    };
 
     try {
       const stages = this.stages.map((stage) => ({
@@ -227,7 +251,7 @@ class MultipleSearchStore {
         }));
         const response = await api.queryTemporalDetect({
           stages: detectObjects,
-          limit: Number(this.limit),
+          ...temporalParams,
         });
 
         this.sequenceResultsPre = response.results ?? [];
@@ -237,7 +261,7 @@ class MultipleSearchStore {
         const response = await api.queryTemporal({
           stages,
           model: this.semanticModel,
-          limit: Number(this.limit),
+          ...temporalParams,
         });
 
         this.sequenceResultsPre = response.results ?? [];

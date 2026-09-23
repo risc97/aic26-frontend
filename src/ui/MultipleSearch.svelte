@@ -444,9 +444,90 @@
 
     <!-- Filter Drawer Content -->
     {#if multipleSearch.showFilterDrawer}
-      <div class="flex items-left gap-2 p-2 m-8 mt-0 {BORDER_STYLE} bg-slate-50 text-xs font-semibold text-slate-700 shadow-sm transition-all">
-        <MyInputbox type="number" label="Limit" bind:value={multipleSearch.limit} min="1" max="1000" width="w-1/8" accent="rose" layout="vertical"/>
-        <MyInputbox type="text" label="Exclusion" bind:value={multipleSearch.exclusion} width="w-5/8" accent="rose" layout="vertical" disabled={multipleSearch.eventLockedVideoId !== ""}/>
+      <div class="flex flex-col items-left gap-2 p-2 w-2xl mx-auto mt-0 {BORDER_STYLE} bg-slate-50 text-xs font-semibold text-slate-700 shadow-sm transition-all">
+        <div class="grid grid-cols-3 gap-2">
+          <MyInputbox
+            type="number"
+            label="Limit"
+            bind:value={multipleSearch.limit}
+            min="1"
+            max="1000"
+            accent="rose"
+            layout="vertical"
+          />
+
+          <MyInputbox
+            type="number"
+            label="Recall depth (r)"
+            bind:value={multipleSearch.recallDepth}
+            min="1"
+            max="2000"
+            accent="rose"
+            layout="vertical"
+          />
+
+          <MyInputbox
+            type="number"
+            label="Chains / video"
+            bind:value={multipleSearch.chainsPerVideo}
+            min="1"
+            accent="rose"
+            layout="vertical"
+          />
+
+          <MyInputbox
+            type="number"
+            label="PRF k"
+            bind:value={multipleSearch.prfK}
+            min="1"
+            accent="rose"
+            layout="vertical"
+          />
+
+          <MyInputbox
+            type="number"
+            label="Max gap (s)"
+            bind:value={multipleSearch.maxGapSeconds}
+            min="0"
+            accent="rose"
+            layout="vertical"
+          />
+
+          <MyInputbox
+            type="number"
+            label="IoU threshold"
+            bind:value={multipleSearch.iouThreshold}
+            min="0"
+            max="1"
+            step="0.1"
+            accent="rose"
+            layout="vertical"
+          />
+        </div>
+        <MyInputbox type="text" label="Exclusion" bind:value={multipleSearch.exclusion} width="w-full" accent="rose" layout="vertical" disabled={multipleSearch.eventLockedVideoId !== ""}/>
+        <div class="mt-2 flex flex-wrap items-center gap-2 border-t-2 border-slate-900 pt-2">
+          <MyCheckbox
+            label="Weights"
+            bind:checked={multipleSearch.showWeightsDrawer}
+            accent="rose"
+          />
+
+          {#if multipleSearch.showWeightsDrawer}
+          <div class="grid grid-cols-4 gap-2">
+            {#each multipleSearch.stages as stage, index (stage.id)}
+              <MyInputbox
+                type="number"
+                label={`E${index + 1}`}
+                bind:value={multipleSearch.stageWeights[index]}
+                min="0"
+                step="0.1"
+                accent="rose"
+                layout="vertical"
+              />
+            {/each}
+          </div>
+          {/if}
+        </div>
       </div>
     {/if}
 
