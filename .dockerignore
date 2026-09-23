@@ -1,0 +1,10 @@
+node_modules
+dist
+.github
+.vscode
+llms
+AGENTS.md
+.gitignore
+.gitattribute
+.env*.local
+README.md
