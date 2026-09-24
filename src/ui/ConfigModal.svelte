@@ -249,8 +249,20 @@
         </Button.Root>
 
         <button
-          onclick={() => handleLogout()}
-          class="{BORDER_STYLE} mt-2 p-1 text-sm font-semibold select-none {ACCENT_PALETTES.rose.bg} {ACCENT_PALETTES.rose.hover} {PRESSED_ANIM} text-white"
+          onclick={() => {open = false}}
+          class="{BORDER_STYLE} p-1 text-sm font-semibold select-none bg-white {PRESSED_ANIM} text-slate-900"
+        >
+          Done
+        </button>
+
+        <button
+          onclick={() => {
+            if(confirm("Are you sure to logout?")) {
+              open = false;
+              handleLogout();
+            }
+          }}
+          class="{BORDER_STYLE} mt-4 p-1 text-sm font-semibold select-none {ACCENT_PALETTES.rose.bg} {ACCENT_PALETTES.rose.hover} {PRESSED_ANIM} text-white"
         >
           Logout
         </button>
