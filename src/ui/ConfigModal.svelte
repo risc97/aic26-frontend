@@ -4,11 +4,14 @@
   import { mockConfig } from '../lib/mock.svelte';
   import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from "./common/CommonStyle";
   import { auth } from "../lib/auth.svelte";
+  import { EyeIcon, EyeSlashIcon } from "phosphor-svelte";
+  import { dresClient } from "../lib/api";
 
   let { open = $bindable(false) }: { open: boolean } = $props();
 
   let showBackendUrl = $state(false);
   let showMediaUrl = $state(false);
+  let showSessionId = $state(false);
 
   type EndpointKey = "base" | "media";
 
@@ -38,7 +41,13 @@
     await config.checkHealth();
   }
 
+  async function handleLoadEvaluation() {
+    const res = await dresClient.getEvaluationList(config.sessionId);
+    config.evaluationId = res[0].id;
+  }
+
   async function handleLogout() {
+    config.sessionId = "";
     open = false;
     setTimeout(() => {
       auth.logout();
@@ -66,21 +75,28 @@
         <label for="mock-mode" class="text-sm font-medium">Enable Testing mode</label>
       </div>
 
-      <div class="mt-4 flex flex-col gap-4">
+      <div class="mt-4 flex flex-col gap-2">
         <!-- Backend endpoint -->
         <div class="{BORDER_STYLE} flex flex-col gap-2 bg-slate-50 p-3">
           <div class="flex items-center justify-between">
-            <label for="backend-url" class="text-sm font-semibold text-slate-700 select-none">
-              Backend URL
-            </label>
             <div class="flex items-center gap-2 text-xs font-semibold">
+              <label for="backend-url" class="text-sm font-semibold text-slate-700 select-none">
+                Backend URL
+              </label>
               <span
                 class={`h-2.5 w-2.5 rounded-full border border-slate-400 ${statusDotClass(config.baseApiPending, config.baseApiConnected)}`}
               ></span>
-              <span class="text-slate-600">
+              <span class="text-slate-600 select-none">
                 {statusLabel(config.baseApiPending, config.baseApiConnected)}
               </span>
             </div>
+            <Button.Root
+              onclick={() => handleTest("base")}
+              disabled={config.baseApiPending}
+              class="{BORDER_STYLE} {PRESSED_ANIM} select-none self-end bg-slate-100 px-3 py-1.5 text-xs font-semibold outline-none hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
+            >
+              {config.baseApiPending ? "Testing…" : "Test"}
+            </Button.Root>
           </div>
 
           <div class="flex gap-2">
@@ -100,33 +116,36 @@
               title={showBackendUrl ? "Hide backend URL" : "Show backend URL"}
               class="{BORDER_STYLE} {PRESSED_ANIM} px-3 text-xs font-semibold"
             >
-              {showBackendUrl ? "Hide" : "Show"}
+              {#if showBackendUrl}
+                <EyeSlashIcon size="24px" />
+              {:else}
+                <EyeIcon size="24px" />
+              {/if}
             </Button.Root>
           </div>
-
-          <Button.Root
-            onclick={() => handleTest("base")}
-            disabled={config.baseApiPending}
-            class="{BORDER_STYLE} {PRESSED_ANIM} self-end bg-slate-100 px-3 py-1.5 text-xs font-semibold outline-none hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
-          >
-            {config.baseApiPending ? "Testing…" : "Test connection"}
-          </Button.Root>
         </div>
 
         <!-- Media endpoint -->
         <div class="{BORDER_STYLE} flex flex-col gap-2 bg-slate-50 p-3">
           <div class="flex items-center justify-between">
-            <label for="media-url" class="text-sm font-semibold text-slate-700 select-none">
-              Media URL
-            </label>
             <div class="flex items-center gap-2 text-xs font-semibold">
+              <label for="media-url" class="text-sm font-semibold text-slate-700 select-none">
+                Media URL
+              </label>
               <span
                 class={`h-2.5 w-2.5 rounded-full border border-slate-400 ${statusDotClass(config.mediaApiPending, config.mediaApiConnected)}`}
               ></span>
-              <span class="text-slate-600">
+              <span class="text-slate-600 select-none">
                 {statusLabel(config.mediaApiPending, config.mediaApiConnected)}
               </span>
             </div>
+            <Button.Root
+              onclick={() => handleTest("media")}
+              disabled={config.mediaApiPending}
+              class="{BORDER_STYLE} {PRESSED_ANIM} select-none self-end bg-slate-100 px-3 py-1.5 text-xs font-semibold outline-none hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
+            >
+              {config.mediaApiPending ? "Testing…" : "Test"}
+            </Button.Root>
           </div>
 
           <div class="flex gap-2">
@@ -146,23 +165,63 @@
               title={showMediaUrl ? "Hide media URL" : "Show media URL"}
               class="{BORDER_STYLE} {PRESSED_ANIM} px-3 text-xs font-semibold"
             >
-              {showMediaUrl ? "Hide" : "Show"}
+              {#if showMediaUrl}
+                <EyeSlashIcon size="24px" />
+              {:else}
+                <EyeIcon size="24px" />
+              {/if}
+            </Button.Root>
+          </div>
+        </div>
+
+        <!-- Session id -->
+        <div class="{BORDER_STYLE} flex flex-col gap-2 bg-slate-50 p-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xs font-semibold">
+              <label for="session-id" class="text-sm font-semibold text-slate-700 select-none">
+                DRES Session ID
+              </label>
+              <span class="text-xs font-semibold text-slate-500 select-none">
+                {config.evaluationId ? `Eval ${config.evaluationId} loaded` : "Eval not loaded"}
+              </span>
+            </div>
+            <Button.Root
+              onclick={() => handleLoadEvaluation()}
+              class="{BORDER_STYLE} {PRESSED_ANIM} select-none self-end bg-slate-100 px-3 py-1.5 text-xs font-semibold outline-none hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
+            >
+              {config.mediaApiPending ? "Testing…" : "Test"}
             </Button.Root>
           </div>
 
-          <Button.Root
-            onclick={() => handleTest("media")}
-            disabled={config.mediaApiPending}
-            class="{BORDER_STYLE} {PRESSED_ANIM} self-end bg-slate-100 px-3 py-1.5 text-xs font-semibold outline-none hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
-          >
-            {config.mediaApiPending ? "Testing…" : "Test connection"}
-          </Button.Root>
+          <div class="flex gap-2">
+            <input
+              id="session-id"
+              type={showSessionId ? "text" : "password"}
+              bind:value={config.sessionId}
+              placeholder="Paste a session id"
+              class="min-w-0 flex-1 {BORDER_STYLE} bg-white p-2 text-sm"
+            />
+
+            <Button.Root
+              type="button"
+              onclick={() => (showSessionId = !showSessionId)}
+              aria-label={showSessionId ? "Hide session id" : "Show session id"}
+              title={showSessionId ? "Hide session id" : "Show session id"}
+              class="{BORDER_STYLE} {PRESSED_ANIM} px-3 text-xs font-semibold"
+            >
+              {#if showSessionId}
+                <EyeSlashIcon size="24px" />
+              {:else}
+                <EyeIcon size="24px" />
+              {/if}
+            </Button.Root>
+          </div>
         </div>
 
         <Button.Root
           onclick={handleTestAll}
           disabled={config.apiPending}
-          class="{BORDER_STYLE} {PRESSED_ANIM} bg-slate-800 hover:bg-slate-900 p-2 text-sm font-semibold text-white outline-none disabled:opacity-50"
+          class="{BORDER_STYLE} {PRESSED_ANIM} select-none bg-slate-800 hover:bg-slate-900 p-2 text-sm font-semibold text-white outline-none disabled:opacity-50"
         >
           {config.apiPending ? "Testing both…" : "Test both endpoints"}
         </Button.Root>

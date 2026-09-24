@@ -26,13 +26,6 @@
     }
   });
 
-  let statusDot = $derived.by(() => {
-    if (mockConfig.enabled) return 'bg-blue-400';
-    if (config.apiPending) return 'bg-yellow-400 animate-pulse';
-    if (config.apiConnected) return 'bg-emerald-500';
-    return 'bg-rose-600';
-  });
-
   function getActiveColorClass(m: string, active: boolean) {
     if (!active) return 'bg-transparent text-slate-700 hover:bg-slate-200';
     switch (m) {
@@ -95,7 +88,7 @@
     </div>
 
     <!-- Right: Config & Status -->
-    <div class="flex shrink-0 items-center gap-2 justify-self-end">
+    <div class="flex shrink-0 items-center gap-6 justify-self-end">
     {#if mode === 'single' || mode === 'multiple'}
       <Toggle.Root
         pressed={appState.qaEnabled}
@@ -109,16 +102,6 @@
       </Toggle.Root>
     {/if}
       <Tooltip.Provider>
-        <Tooltip.Root>
-          <Tooltip.Trigger
-            type="button"
-            onclick={onOpenConfigModal}
-            class="flex h-9 w-9 items-center justify-center hover:bg-slate-100 outline-none"
-          >
-            <span class={`h-3.5 w-3.5 border border-slate-400 ${statusDot}`}></span>
-          </Tooltip.Trigger>
-        </Tooltip.Root>
-
         <Tooltip.Root>
           <Tooltip.Trigger
             type="button"

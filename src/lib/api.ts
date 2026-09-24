@@ -326,3 +326,140 @@ export class ApiClient {
 }
 
 export const apiClient = new ApiClient();
+
+// --- DRES evaluation-server client (eventretrieval.one) ---
+//
+
+const DRES_BASE_URL = 'https://eventretrieval.one/api/v2';
+
+export interface DresLoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface DresLoginResponse {
+  id: string;
+  username: string;
+  role: string;
+  sessionId: string;
+}
+
+export interface DresEvaluationInfo {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+}
+
+export interface DresKisAnswer {
+  mediaItemName: string;
+  start: number;
+  end: number;
+}
+
+export interface DresTextAnswer {
+  text: string;
+}
+
+interface DresAnswerSet<T> {
+  answers: T[];
+}
+
+interface DresSubmitRequest<T> {
+  answerSets: DresAnswerSet<T>[];
+}
+
+export class DresApiError extends ApiError {}
+
+export class DresApiClient {
+  private buildUrl(path: string, session: string, params?: Record<string, unknown>): string {
+    const url = new URL(`${DRES_BASE_URL}${path}`);
+    url.searchParams.set('session', session);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+    return url.toString();
+  }
+
+  private async parseErrorBody(response: Response): Promise<HTTPValidationError | undefined> {
+    try {
+      return await response.json();
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** GET the list of evaluations (competitions/tasks) visible to this session. */
+  async getEvaluationList(sessionId: string): Promise<DresEvaluationInfo[]> {
+    const url = this.buildUrl('/client/evaluation/list', sessionId);
+    const response = await fetch(url, { method: 'GET' });
+
+    if (!response.ok) {
+      throw new DresApiError(response.status, response.statusText, await this.parseErrorBody(response));
+    }
+
+    return response.json() as Promise<DresEvaluationInfo[]>;
+  }
+
+  private async submit<T>(
+    evaluationId: string,
+    sessionId: string,
+    body: DresSubmitRequest<T>
+  ): Promise<string> {
+    const url = this.buildUrl(`/submit/${encodeURIComponent(evaluationId)}`, sessionId);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new DresApiError(response.status, response.statusText, await this.parseErrorBody(response));
+    }
+    return response.text();
+  }
+
+  /** KIS: submit a video + the start/end (ms) of the matching frame range. */
+  async submitKis(
+    evaluationId: string,
+    sessionId: string,
+    videoId: string,
+    startMs: number,
+    endMs: number
+  ): Promise<string> {
+    return this.submit<DresKisAnswer>(evaluationId, sessionId, {
+      answerSets: [{ answers: [{ mediaItemName: videoId, start: startMs, end: endMs }] }],
+    });
+  }
+
+  /** QA: submit a free-text answer encoded as QA-<ANSWER>-<VIDEO_ID>-<TIME_MS>. */
+  async submitQa(
+    evaluationId: string,
+    sessionId: string,
+    answer: string,
+    videoId: string,
+    timeMs: number
+  ): Promise<string> {
+    return this.submit<DresTextAnswer>(evaluationId, sessionId, {
+      answerSets: [{ answers: [{ text: `QA-${answer}-${videoId}-${timeMs}` }] }],
+    });
+  }
+
+  /** TRAKE: submit an ordered list of frame ids encoded as TR-<VIDEO_ID>-<FRAME_ID1>,<FRAME_ID2>,... */
+  async submitTrake(
+    evaluationId: string,
+    sessionId: string,
+    videoId: string,
+    frameIds: Array<string | number>
+  ): Promise<string> {
+    return this.submit<DresTextAnswer>(evaluationId, sessionId, {
+      answerSets: [{ answers: [{ text: `TR-${videoId}-${frameIds.join(',')}` }] }],
+    });
+  }
+}
+
+export const dresClient = new DresApiClient();
