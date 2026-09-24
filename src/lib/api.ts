@@ -396,7 +396,9 @@ export class DresApiClient {
   /** GET the list of evaluations (competitions/tasks) visible to this session. */
   async getEvaluationList(sessionId: string): Promise<DresEvaluationInfo[]> {
     const url = this.buildUrl('/client/evaluation/list', sessionId);
+    // console.log("[getEvaluationList] Fetching evaluation list from:", url);
     const response = await fetch(url, { method: 'GET' });
+    // console.log(`[getEvaluationList] Response status: ${response.status}, Text: ${response.statusText}`);
 
     if (!response.ok) {
       throw new DresApiError(response.status, response.statusText, await this.parseErrorBody(response));
@@ -425,38 +427,32 @@ export class DresApiClient {
 
   /** KIS: submit a video + the start/end (ms) of the matching frame range. */
   async submitKis(
-    evaluationId: string,
-    sessionId: string,
     videoId: string,
     startMs: number,
     endMs: number
   ): Promise<string> {
-    return this.submit<DresKisAnswer>(evaluationId, sessionId, {
+    return this.submit<DresKisAnswer>(config.evaluationId, config.sessionId, {
       answerSets: [{ answers: [{ mediaItemName: videoId, start: startMs, end: endMs }] }],
     });
   }
 
   /** QA: submit a free-text answer encoded as QA-<ANSWER>-<VIDEO_ID>-<TIME_MS>. */
   async submitQa(
-    evaluationId: string,
-    sessionId: string,
-    answer: string,
     videoId: string,
-    timeMs: number
+    timeMs: number,
+    answer: string
   ): Promise<string> {
-    return this.submit<DresTextAnswer>(evaluationId, sessionId, {
+    return this.submit<DresTextAnswer>(config.evaluationId, config.sessionId, {
       answerSets: [{ answers: [{ text: `QA-${answer}-${videoId}-${timeMs}` }] }],
     });
   }
 
   /** TRAKE: submit an ordered list of frame ids encoded as TR-<VIDEO_ID>-<FRAME_ID1>,<FRAME_ID2>,... */
   async submitTrake(
-    evaluationId: string,
-    sessionId: string,
     videoId: string,
     frameIds: Array<string | number>
   ): Promise<string> {
-    return this.submit<DresTextAnswer>(evaluationId, sessionId, {
+    return this.submit<DresTextAnswer>(config.evaluationId, config.sessionId, {
       answerSets: [{ answers: [{ text: `TR-${videoId}-${frameIds.join(',')}` }] }],
     });
   }

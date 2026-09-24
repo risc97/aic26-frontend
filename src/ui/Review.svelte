@@ -276,7 +276,7 @@
 </div>
 {/snippet}
 
-<div class="min-h-0 flex gap-2 p-1">
+<div class="min-h-0 flex flex-1 gap-2 p-1">
   <!-- Panel -->
   <div class="flex flex-col w-[30%] {BORDER_STYLE} p-2">
     <!-- 1: Title -->

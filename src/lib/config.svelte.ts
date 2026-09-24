@@ -21,6 +21,7 @@ class AppConfig {
   mediaApiConnected = $state(false);
   baseApiPending = $state(false);
   mediaApiPending = $state(false);
+  loadEvaluationStatus = $state<"none" | "loading" | "success" | "error">("none");
 
   // Backwards-compatible combined pending flag (true if either check is running)
   get apiPending() {

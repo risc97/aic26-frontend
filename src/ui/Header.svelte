@@ -111,7 +111,7 @@
             <GearIcon size="16px" weight="bold"/>
           </Tooltip.Trigger>
           <Tooltip.Content class="z-50 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
-            API Request Configuration
+            Configuration
             <Tooltip.Arrow class="border-neutral-900 fill-white" />
           </Tooltip.Content>
         </Tooltip.Root>

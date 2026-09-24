@@ -5,13 +5,15 @@
   import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from "./common/CommonStyle";
   import { auth } from "../lib/auth.svelte";
   import { EyeIcon, EyeSlashIcon } from "phosphor-svelte";
-  import { dresClient } from "../lib/api";
+  import { Toaster, toast } from 'svelte-sonner'
+  import { dresClient, DresApiError } from "../lib/api";
 
   let { open = $bindable(false) }: { open: boolean } = $props();
 
   let showBackendUrl = $state(false);
   let showMediaUrl = $state(false);
   let showSessionId = $state(false);
+  let loadEvaluationStatus = $state<"none" | "loading" | "success" | "error">("none");
 
   type EndpointKey = "base" | "media";
 
@@ -42,8 +44,24 @@
   }
 
   async function handleLoadEvaluation() {
-    const res = await dresClient.getEvaluationList(config.sessionId);
-    config.evaluationId = res[0].id;
+    try {
+      loadEvaluationStatus = "loading";
+      const res = await dresClient.getEvaluationList(config.sessionId);
+      if (res.length === 0) {
+        toast.info("No evaluations found for this session ID.");
+        loadEvaluationStatus = "none";
+        return;
+      }
+      config.evaluationId = res[0].id;
+      toast.success(`Loaded evaluation: ${res[0].name} (ID: ${res[0].id})`);
+      loadEvaluationStatus = "success";
+    } catch (error) {
+      if (!(error instanceof DresApiError)) return;
+      console.error("Error loading evaluation list:", error);
+      toast.error(`Error loading evaluation list: ${error.message}`)
+      loadEvaluationStatus = "error";
+      return;
+    }
   }
 
   async function handleLogout() {
@@ -55,11 +73,15 @@
   }
 </script>
 
+
 <Dialog.Root bind:open>
   <Dialog.Portal>
     <Dialog.Overlay class="fixed inset-0 z-50 bg-black/50" />
     <Dialog.Content
       class="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 {BORDER_STYLE} bg-white p-6 shadow-xl"
+      onInteractOutside={(e) => {
+        e.preventDefault();
+      }}
     >
       <Dialog.Title class="text-lg font-bold select-none">Configuration</Dialog.Title>
 
@@ -189,7 +211,7 @@
               onclick={() => handleLoadEvaluation()}
               class="{BORDER_STYLE} {PRESSED_ANIM} select-none self-end bg-slate-100 px-3 py-1.5 text-xs font-semibold outline-none hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50"
             >
-              {config.mediaApiPending ? "Testing…" : "Test"}
+              {config.loadEvaluationStatus === "loading" ? "Loading…" : "Relogon"}
             </Button.Root>
           </div>
 
@@ -234,7 +256,7 @@
         </button>
       </div>
 
-      <Dialog.Close class="absolute right-4 top-4 p-1 text-sm font-bold {PRESSED_ANIM} {BORDER_STYLE}">
+      <Dialog.Close class="absolute right-4 top-4 w-8 h-8 p-1 text-sm font-bold {PRESSED_ANIM} {BORDER_STYLE}">
         ✕
       </Dialog.Close>
     </Dialog.Content>

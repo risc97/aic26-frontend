@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Component } from 'svelte';
   import type { CardItem, SearchMode } from '../lib/types';
-  import { apiClient } from '../lib/api';
+  import { apiClient, dresClient, DresApiError } from '../lib/api';
   import { appState } from '../lib/appState.svelte';
   import { reviewQueue, type SingleReviewItem } from '../lib/reviewQueue.svelte';
   import {
@@ -11,8 +11,9 @@
     PRESSED_ANIM,
     type AccentColor
   } from './common/CommonStyle';
-    import { DropdownMenu } from 'bits-ui';
-    import { DotsThreeVerticalIcon, ArrowLineUpIcon, PlusIcon, AirplaneTakeoffIcon, ChatCenteredTextIcon, CheckFatIcon } from 'phosphor-svelte';
+  import { DropdownMenu } from 'bits-ui';
+  import { DotsThreeVerticalIcon, ArrowLineUpIcon, PlusIcon, AirplaneTakeoffIcon, ChatCenteredTextIcon, CheckFatIcon, CheckIcon, AirplaneTiltIcon } from 'phosphor-svelte';
+  import { Toaster, toast } from 'svelte-sonner'
 
   type CardAction = {
     id: string;
@@ -62,6 +63,10 @@
     resolvedScore === undefined ? 'N/A' : resolvedScore.toFixed(4)
   );
 
+  let animAdd = $state(false);
+  let animAddTop = $state(false);
+  let animSubmit = $state(false);
+
   let displayTime = $derived(formatTime(timestampMs, keyframeId));
 
   let isOcrExpanded = $state(false);
@@ -83,6 +88,28 @@
 
     return `Frame ${frameId}`;
   }
+
+  async function handleSingleSubmit() {
+    if (appState.qaEnabled && qaAnswer.trim() !== '') {
+      // QA submit
+      try {
+        const res = await dresClient.submitQa(videoId, timestampMs, qaAnswer.trim());
+        toast.info(`Submitted QA: ${res}`);
+      } catch(error) {
+        if(!(error instanceof DresApiError)) return;
+        toast.error(`Error submitting QA: ${error.message}`);
+      }
+    } else {
+      // KIS submit, +- 10ms range
+      try {
+        const res = await dresClient.submitKis(videoId, timestampMs-10 < 0 ? 0 : timestampMs-10, timestampMs+10);
+        toast.info(`Submitted KIS: ${res}`);
+      } catch(error) {
+        if(!(error instanceof DresApiError)) return;
+        toast.error(`Error submitting KIS: ${error.message}`);
+      }
+    }
+  } 
 </script>
 
 <article class="flex h-full flex-col overflow-hidden {BORDER_STYLE} {accentPalette.hoverSubtle} {accentPalette.bgSubtle} transition-all">
@@ -250,8 +277,12 @@
       <div class="flex gap-1 pt-2">
         <button
           type="button"
-          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
+          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} text-sm font-bold transition-all {PRESSED_ANIM} {animAddTop ? 'bg-emerald-400' : `bg-white ${ACCENT_PALETTES.emerald.hoverSubtle}`}"
           onclick={() => {
+            animAddTop = true;
+            setTimeout(() => {
+              animAddTop = false;
+            }, 1500);
             const reviewItem: SingleReviewItem = {
               videoId: videoId,
               frameIndex: frameIndex,
@@ -260,14 +291,23 @@
             reviewQueue.addTop(reviewItem);
           }}
         >
+          {#if animAddTop}
+          <CheckIcon size="14px" weight="bold" />
+          <span class="hidden xl:inline">Added</span>
+          {:else}
           <ArrowLineUpIcon size="14px" weight="bold" />
           <span class="hidden xl:inline">Add top</span>
+          {/if}
         </button>
 
         <button
           type="button"
-          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
+          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} text-sm font-bold transition-all {PRESSED_ANIM} {animAdd ? 'bg-emerald-400' : `bg-white ${ACCENT_PALETTES.emerald.hoverSubtle}`}"
           onclick={() => {
+            animAdd = true;
+            setTimeout(() => {
+              animAdd = false;
+            }, 1500);
             const reviewItem: SingleReviewItem = {
               videoId: videoId,
               frameIndex: frameIndex,
@@ -276,17 +316,33 @@
             reviewQueue.add(reviewItem);
           }}
         >
+          {#if animAdd}
+          <CheckIcon size="14px" weight="bold" />
+          <span class="hidden xl:inline">Added</span>
+          {:else}
           <PlusIcon size="14px" weight="bold" />
           <span class="hidden xl:inline">Add</span>
+          {/if}
         </button>
 
         <button
           type="button"
-          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} {ACCENT_PALETTES.amber.bg} {ACCENT_PALETTES.amber.hover} text-slate-100 text-sm font-bold {PRESSED_ANIM}"
-          onclick={() => console.log('Departure!')}
+          class="flex flex-1 items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} text-sm font-bold transition-all {PRESSED_ANIM} {animSubmit ? 'bg-amber-400 text-slate-900' : `${ACCENT_PALETTES.amber.bg} ${ACCENT_PALETTES.amber.hover} text-slate-100`}"
+          onclick={() => {
+            animSubmit = true;
+            setTimeout(() => {
+              animSubmit = false;
+            }, 1500);
+            handleSingleSubmit();
+          }}
         >
+          {#if animSubmit}
+          <AirplaneTiltIcon size="14px" weight="bold" />
+          <span class="hidden xl:inline">Submitted</span>
+          {:else}
           <AirplaneTakeoffIcon size="14px" weight="bold" />
           <span class="hidden xl:inline">Submit</span>
+          {/if}
         </button>
       </div>
     {/if}

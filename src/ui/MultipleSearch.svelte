@@ -11,6 +11,8 @@
     LockOpenIcon,
     ArrowLineUpIcon,
     AirplaneTakeoffIcon,
+    AirplaneTiltIcon,
+    CheckIcon,
   } from "phosphor-svelte";
   import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from "./common/CommonStyle";
   import MyDropdown from "./common/MyDropdown.svelte";
@@ -22,6 +24,8 @@
     import MyCheckbox from "./common/MyCheckbox.svelte";
     import MyInputbox from "./common/MyInputbox.svelte";
     import { reviewQueue, type TrakeReviewItem } from "../lib/reviewQueue.svelte";
+    import { toast } from "svelte-sonner";
+    import { dresClient, DresApiError } from "../lib/api";
 
   const MODEL_OPTIONS = [
     { value: "siglip", label: "siglip" },
@@ -38,6 +42,10 @@
 
   let selectedVideo = $state<CardItem | null>(null);
   let videoDialogOpen = $state(false);
+
+  let animAddTopMap = $state<Record<string, boolean>>({});
+  let animAddMap = $state<Record<string, boolean>>({});
+  let animSubmitMap = $state<Record<string, boolean>>({});
 
   function openVideo(item: CardItem) {
     selectedVideo = item;
@@ -58,6 +66,17 @@
         event.preventDefault();
         nextInput.focus();
       }
+    }
+  }
+
+  async function handleMultipleSubmit(items: TemporalMatch[]) {
+    
+    try {
+      const res = await dresClient.submitTrake(items[0].video_id, items.map(item => item.frame_idx));
+      toast.info(`Submitted TRAKE: ${res}`);
+    } catch(error) {
+      if(!(error instanceof DresApiError)) return;
+      toast.error(`Error submitting TRAKE: ${error.message}`);
     }
   }
 
@@ -83,39 +102,68 @@
   $inspect(multipleSearch.sequenceResults, "Sequence Results");
 </script>
 
-{#snippet trakeSubmitControlGroup(items: TemporalMatch[])}
+{#snippet trakeSubmitControlGroup(items: TemporalMatch[], animKey: string = 'default')}
 <div class="flex items-center gap-2">
   <button
     type="button"
-    class="flex items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
+    class="flex items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM} {animAddTopMap[animKey] ? 'bg-emerald-400' : `bg-white ${ACCENT_PALETTES.emerald.hoverSubtle}`}"
     onclick={() => {
+      animAddTopMap[animKey] = true;
+      setTimeout(() => {
+        animAddTopMap[animKey] = false;
+      }, 1500);
       const reviewItem: TrakeReviewItem = buildTrakeReviewItem(items);
       reviewQueue.addTop(reviewItem);
     }}
   >
+    {#if animAddTopMap[animKey]}
+    <CheckIcon size="14px" weight="bold" />
+    <span class="hidden xl:inline">Added</span>
+    {:else}
     <ArrowLineUpIcon size="14px" weight="bold" />
     <span class="hidden xl:inline">Add top</span>
+    {/if}
   </button>
 
   <button
     type="button"
-    class="flex items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
+    class="flex items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM} {animAddMap[animKey] ? 'bg-emerald-400' : `bg-white ${ACCENT_PALETTES.emerald.hoverSubtle}`}"
     onclick={() => {
+      animAddMap[animKey] = true;
+      setTimeout(() => {
+        animAddMap[animKey] = false;
+      }, 1500);
       const reviewItem: TrakeReviewItem = buildTrakeReviewItem(items);
       reviewQueue.add(reviewItem);
     }}
   >
+    {#if animAddMap[animKey]}
+    <CheckIcon size="14px" weight="bold" />
+    <span class="hidden xl:inline">Added</span>
+    {:else}
     <PlusIcon size="14px" weight="bold" />
     <span class="hidden xl:inline">Add</span>
+    {/if}
   </button>
 
   <button
     type="button"
-    class="flex items-center justify-center p-1 gap-1 {BORDER_STYLE} {ACCENT_PALETTES.amber.bg} {ACCENT_PALETTES.amber.hover} text-slate-100 text-sm font-bold {PRESSED_ANIM}"
-    onclick={() => console.log('Departure!')}
+    class="flex items-center justify-center p-1 gap-1 {BORDER_STYLE} text-sm font-bold transition-all {PRESSED_ANIM} {animSubmitMap[animKey] ? 'bg-amber-400 text-slate-900' : `${ACCENT_PALETTES.amber.bg} ${ACCENT_PALETTES.amber.hover} text-slate-100`}"
+    onclick={() => {
+      animSubmitMap[animKey] = true;
+      setTimeout(() => {
+        animSubmitMap[animKey] = false;
+      }, 1500);
+      handleMultipleSubmit(items);
+    }}
   >
+    {#if animSubmitMap[animKey]}
+    <AirplaneTiltIcon size="14px" weight="bold" />
+    <span class="hidden xl:inline">Submitted</span>
+    {:else}
     <AirplaneTakeoffIcon size="14px" weight="bold" />
     <span class="hidden xl:inline">Submit</span>
+    {/if}
   </button>
 </div>
 {/snippet}
@@ -169,7 +217,7 @@
         </div>
       </div>
       {#if item.matches && item.matches.length == multipleSearch.stages.length}
-      {@render trakeSubmitControlGroup(item.matches)}
+      {@render trakeSubmitControlGroup(item.matches, `${item.video_id}-${item.rank}`)}
       {/if}
     </header>
     
@@ -553,7 +601,7 @@
         <span class="hidden xl:inline">Unlock all</span>
       </button>
       {#if multipleSearch.allEventFilled()}
-      {@render trakeSubmitControlGroup(multipleSearch.eventFrameLockArray as TemporalMatch[])}
+      {@render trakeSubmitControlGroup(multipleSearch.eventFrameLockArray as TemporalMatch[], "event-lock")}
       {/if}
   </div>
     {/if}

@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "bits-ui": "^2.19.0",
-    "js-sha256": "^1.0.0"
+    "js-sha256": "^1.0.0",
+    "svelte-sonner": "^1.2.1"
   }
 }
