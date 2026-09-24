@@ -33,6 +33,7 @@ class MultipleSearchStore {
   }
 
   // Advanced temporal-search parameters
+  seedStage = $state(0);
   recallDepth = $state(100);
   chainsPerVideo = $state(1);
   rrfK = $state(60);
@@ -181,6 +182,11 @@ class MultipleSearchStore {
     this.nextStageId += 1;
   }
 
+  setSeed(index: number) {
+    if (index < 0 || index >= this.stages.length) return;
+    this.seedStage = index;
+  }
+
   removeStage(id: number) {
     if (this.stages.length === 1) return;
     const index = this.stages.findIndex(stage => stage.id === id);
@@ -188,6 +194,12 @@ class MultipleSearchStore {
     if (index !== -1) {
       this.eventPages.splice(index, 1);
       this.stageWeights.splice(index, 1);
+      // keep the seed pointing at the same stage, or fall back to the first
+      if (this.seedStage === index) {
+        this.seedStage = 0;
+      } else if (this.seedStage > index) {
+        this.seedStage -= 1;
+      }
     }
     this.resetView();   //safest way to maintain data integrity
   }
@@ -221,6 +233,7 @@ class MultipleSearchStore {
     this.resetView();
 
     const temporalParams = {
+      seed: Number(this.seedStage),
       limit: Number(this.limit),
       r: Number(this.recallDepth),
       chains_per_video: Number(this.chainsPerVideo),
