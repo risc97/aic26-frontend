@@ -18,7 +18,7 @@ class SingleSearchStore {
       this.resetView();
     }
   }
-  modelSemantic = $state<EmbeddingModel>('siglip'); // 'siglip' | 'siglip2' | 'pe'
+  modelSemantic = $state<EmbeddingModel>('siglip2'); // 'siglip' | 'siglip2' | 'pe'
   isTranscriptExact = $state(false);
   isSearchPhrase = $state(false);
   similarFrame = $state("");
