@@ -18,7 +18,7 @@
   import MyDropdown from "./common/MyDropdown.svelte";
   import { multipleSearch, type EventItem } from "../lib/multipleSearchImpl.svelte";
   import { type TemporalItem, type CardItem, type TemporalMatch } from "../lib/types";
-  import { Pagination, Toggle } from "bits-ui";
+  import { Pagination, Toggle, Tooltip } from "bits-ui";
     import KeyframeCard from "./KeyframeCard.svelte";
     import VideoDialog from "./VideoDialog.svelte";
     import MyCheckbox from "./common/MyCheckbox.svelte";
@@ -391,6 +391,7 @@
 <div class="min-h-0 flex flex-1 flex-col">
   <div class="flex flex-col gap-2.5 p-2">
     <!-- Each search bar stage -->
+    <Tooltip.Provider delayDuration={300}>
     {#each multipleSearch.stages as stage, index (stage.id)}
       <div class="flex h-11 items-center {BORDER_STYLE} {rose.focusRing} bg-white">
         <div class="flex h-full w-12 shrink-0 items-center justify-center {rose.bgSubtle} {rose.text} border-r-2 border-slate-900 text-base font-mono font-bold select-none">
@@ -405,6 +406,32 @@
             accent="rose"
           />
           {/if}
+
+          <!-- exactly one checkbox is ticked -->
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              {#snippet child({ props })}
+                <div {...props} class="shrink-0">
+                  <MyCheckbox
+                    label="Seed"
+                    bind:checked={
+                      () => multipleSearch.seedStage === index,
+                      (isChecked) => {
+                        if (isChecked) multipleSearch.setSeed(index);
+                      }
+                    }
+                    accent="rose"
+                    height="h-7"
+                    strong={multipleSearch.seedStage === index}
+                  />
+                </div>
+              {/snippet}
+            </Tooltip.Trigger>
+            <Tooltip.Content sideOffset={6} class="z-50 {BORDER_STYLE} bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
+              Stage để search toàn bộ corpus
+              <Tooltip.Arrow class="border-neutral-900 fill-white" />
+            </Tooltip.Content>
+          </Tooltip.Root>
 
           <input
             bind:this={stageInputs[index]}
@@ -426,6 +453,7 @@
         </button>
       </div>
     {/each}
+    </Tooltip.Provider>
 
     <!-- Control area -->
     <div class="flex justify-center w-full px-4">

@@ -56,6 +56,7 @@ export interface DetectQueryResponse {
 
 export interface TemporalDetectQueryRequest {
   stages: DetectObjectQuery[];
+  seed?: number;
   limit?: number;
   model?: 'owlv2-base' | 'owlv2-large';
   nms_iou?: number;
@@ -165,6 +166,7 @@ export interface OcrQueryRequest {
 
 export interface TemporalQueryRequest {
   stages: TemporalStage[];
+  seed?: number;
   limit?: number;
   model?: AllModelTypes;
   chains_per_video?: number;
