@@ -58,9 +58,25 @@
   
   let paused = $state(true);
   let currentTime = $state(0);
-  let currentFrameIdx = $derived(Math.round(currentTime * fps));
   let timestampMs = $derived(Math.round(currentTime * 1000));
   let duration = $state(0);
+
+  // currentTime updates via requestAnimationFrame while playing (up to ~60/s),
+  // which is far faster than the readout needs to redraw. Throttle a separate
+  // display-only copy so the DOM only updates a few times a second, while
+  // `currentTime` itself stays fully accurate for seeking/submitting.
+  const DISPLAY_UPDATE_INTERVAL_MS = 150;
+  let displayCurrentTime = $state(0);
+  let lastDisplayUpdate = 0;
+  $effect(() => {
+    const t = currentTime;
+    const now = performance.now();
+    if (paused || now - lastDisplayUpdate >= DISPLAY_UPDATE_INTERVAL_MS) {
+      lastDisplayUpdate = now;
+      displayCurrentTime = t;
+    }
+  });
+  let currentFrameIdx = $derived(Math.round(displayCurrentTime * fps));
 
   // Continuous hold-to-seek logic
   let holdTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -296,7 +312,7 @@
     <!-- Right control area -->
     <div class="flex items-center gap-1.5">
       <div class="flex w-36 h-9 items-center justify-center p-1 gap-1 {BORDER_STYLE} {accentPalette.textDark} bg-white text-sm font-bold">
-        <span>#{currentFrameIdx} ({displayTime(currentTime)})</span>
+        <span>#{currentFrameIdx} ({displayTime(displayCurrentTime)})</span>
       </div>
       <button
         type="button"
