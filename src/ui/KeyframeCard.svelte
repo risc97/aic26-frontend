@@ -110,6 +110,18 @@
       }
     }
   } 
+
+  function handleKeyframeError(event: Event) {
+    const image = event.currentTarget as HTMLImageElement;
+    const fallbackUrl = apiClient.getKeyframeImageUrl2(videoId, keyframeId);
+
+    // Try the fallback only once.
+    if (image.src !== fallbackUrl) {
+      image.src = fallbackUrl;
+    } else {
+      image.removeAttribute('src');
+    }
+  }
 </script>
 
 <article class="flex h-full flex-col overflow-hidden {BORDER_STYLE} {accentPalette.hoverSubtle} {accentPalette.bgSubtle} transition-all">
@@ -125,7 +137,7 @@
       alt={`Frame ${keyframeId} from ${videoId}`}
       class={"h-full w-full object-cover"}
       loading="lazy"
-      onerror={() => {}}
+      onerror={handleKeyframeError}
     />
 
     <span class="absolute inset-x-0 bottom-0 bg-slate-900/65 px-2 py-1 text-center text-xs font-bold text-white opacity-0 transition-opacity group-hover/video:opacity-100">

@@ -169,6 +169,15 @@ export class ApiClient {
     );
   }
 
+  getKeyframeImageUrl2(videoId: string, keyframeId: string): string {
+    if (mockConfig.enabled) {
+      return generateMockImageUrl(videoId, keyframeId);
+    }
+    return this.buildUrl(
+      `/keyframe/${encodeURIComponent(videoId)}/${encodeURIComponent(keyframeId)}`
+    );
+  }
+
   async getKeyframeBlob(videoId: string, keyframeId: string): Promise<Blob> {
     const url = this.getKeyframeImageUrl(videoId, keyframeId);
     const response = await fetch(url, { method: 'GET', headers: this.headers });

@@ -44,6 +44,18 @@
     return `${mm}:${ss}.${cs}`;
   }
 
+  function handleKeyframeError(event: Event, videoId: string, keyframeId: string) {
+    const image = event.currentTarget as HTMLImageElement;
+    const fallbackUrl = apiClient.getKeyframeImageUrl2(videoId, keyframeId);
+
+    // Try the fallback only once.
+    if (image.src !== fallbackUrl) {
+      image.src = fallbackUrl;
+    } else {
+      image.removeAttribute('src');
+    }
+  }
+
   $effect(() => {
     if (!open) {
       runOnce = false;
@@ -145,6 +157,7 @@
                     alt={`Frame ${kf.frame_idx}`}
                     class="w-full h-auto object-contain block"
                     loading="lazy"
+                    onerror={(e) => handleKeyframeError(e, kf.video_id, kf.keyframe_id)}
                   />
                   {#if kf.frame_idx !== frameIndex}
                   <div class="absolute inset-0 bg-black/40"></div>
