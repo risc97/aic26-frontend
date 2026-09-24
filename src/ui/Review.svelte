@@ -9,9 +9,9 @@
     CheckIcon,
     ArrowUpIcon,
     ArrowDownIcon,
-
-    ArrowLineUpIcon
-
+    ArrowLineUpIcon,
+    AirplaneTakeoffIcon,
+    AirplaneTiltIcon
   } from "phosphor-svelte";
   import { Tabs } from "bits-ui";
   import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from "./common/CommonStyle";
@@ -19,6 +19,8 @@
   import VideoFrame from "./VideoFrame.svelte";
   import { reviewQueue, isSingleReviewItem } from "../lib/reviewQueue.svelte";
   import type { ReviewItem, SingleReviewItem, TrakeReviewItem} from "../lib/reviewQueue.svelte";
+    import { toast } from "svelte-sonner";
+    import { DresApiError, dresClient } from "../lib/api";
 
   const emerald = ACCENT_PALETTES.emerald;
 
@@ -32,6 +34,8 @@
   let frameIndex = $state(0);
   let rawBuffer = $state('');
   let parseResult = $derived(reviewQueue.parseReviewQueue(rawBuffer));
+
+  let animTrakeSubmit = $state(false);
 
   // Active states passed to VideoFrame (only updated on "Load" click)
   let activeVideoId = $state("");
@@ -144,6 +148,16 @@
       }
     } else if (currentItemIndex.index > index) {
       currentItemIndex = { index: currentItemIndex.index - 1, event: currentItemIndex.event };
+    }
+  }
+
+  async function handleTrakeSubmit(items: TrakeReviewItem) {
+    try {
+      const res = await dresClient.submitTrake(items.videoId, items.frameIndexArray);
+      toast.info(`Submitted TRAKE: ${res}`);
+    } catch(error) {
+      if(!(error instanceof DresApiError)) return;
+      toast.error(`Error submitting TRAKE: ${error.message}`);
     }
   }
 
@@ -264,6 +278,24 @@
 
     <!-- Right -->
     <div class="flex shrink-0 items-center gap-2">
+      <button
+        type="button"
+        class="rounded border-2 border-amber-900 flex h-6 w-6 items-center justify-center {ACCENT_PALETTES.amber.text} {PRESSED_ANIM} {ACCENT_PALETTES.rose.hoverSubtle} {animTrakeSubmit ? 'bg-amber-400 text-slate-900' : `${ACCENT_PALETTES.amber.hover}`}"
+        title="Submit"
+        onclick={() => {
+          animTrakeSubmit = true;
+          setTimeout(() => {
+            animTrakeSubmit = false;
+          }, 1500);
+          handleTrakeSubmit(item);
+        }}
+      >
+        {#if animTrakeSubmit}
+        <AirplaneTiltIcon size="14px" weight="bold" />
+        {:else}
+        <AirplaneTakeoffIcon size="14px" weight="bold" />
+        {/if}
+      </button>
       {@render ReviewItemContrl(index)}
     </div>
   </div>
