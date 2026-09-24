@@ -7,6 +7,7 @@
   import Review from './ui/Review.svelte';
   import { auth } from './lib/auth.svelte';
   import { Toaster, toast } from 'svelte-sonner'
+    import Logs from './ui/Logs.svelte';
 
   let mode = $state('single');
   let isConfigOpen = $state(false);
@@ -56,7 +57,7 @@
         {:else if mode === 'multiple'}
           <MultipleSearch />
         {:else if mode === 'logs'}
-          <!-- Logs mode view placeholder -->
+          <Logs />
         {/if}
 
         <div class={mode === 'review' ? 'contents' : 'hidden'}>
