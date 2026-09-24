@@ -13,6 +13,7 @@
     BarcodeIcon,
     ApertureIcon,
     ArrowLineUpIcon,
+    XIcon,
   } from 'phosphor-svelte';
   import { BORDER_STYLE, ACCENT_PALETTES } from './common/CommonStyle';
   import MyDropdown from './common/MyDropdown.svelte';
@@ -151,7 +152,28 @@
       {:else}
         <MyInputbox type="number" label="Limit" bind:value={singleSearch.limit} min="1" max="1000" width="w-1/8" height="h-10" accent="blue" layout="horizontal"/>
         <MyInputbox type="text" label="Exclusion" bind:value={singleSearch.exclusion} width="w-5/8" height="h-10" accent="blue" layout="horizontal"/>
-        <MyInputbox type="text" label="Similar frame" bind:value={singleSearch.similarFrame} width="w-2/8" height="h-10" accent="blue" layout="horizontal" disabled={true}/>
+        <div class="inline-flex h-10 w-2/8 items-center gap-1 {BORDER_STYLE} bg-blue-100/80 p-1">
+        <span class="shrink-0 px-1 text-sm font-semibold text-slate-900 select-none">
+          Similar frame
+        </span>
+
+        <input
+          value={singleSearch.similarFrame}
+          readonly
+          class="h-full min-w-0 flex-1 {BORDER_STYLE} bg-white px-1 text-sm font-mono text-slate-900 outline-none"
+        />
+
+        <button
+          type="button"
+          aria-label="Clear similar frame"
+          title="Clear similar frame"
+          disabled={singleSearch.similarFrame === ''}
+          onclick={() => singleSearch.clearSimilarFrame()}
+          class="flex h-7 w-7 shrink-0 items-center justify-center {BORDER_STYLE} bg-white text-slate-700 hover:bg-rose-100 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <XIcon size="16px" weight="bold" />
+        </button>
+      </div>
       {/if}
     </div>
   {/if}
@@ -209,7 +231,6 @@
                 {
                   id: 'similar',
                   label: 'Similar keyframes',
-                  disabled: true,
                   icon: TildeIcon,
                   class: 'text-blue-700 hover:bg-blue-100 hover:text-blue-900',
                   run: (currentItem) => {

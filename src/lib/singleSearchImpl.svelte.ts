@@ -101,6 +101,7 @@ class SingleSearchStore {
 
   resetView() {
     this.errorMessage = null;
+    this.similarFrame = "";
     this.resultRaw = [];
     this.resultSimilar = [];
     this.currentPage = 1;
@@ -179,6 +180,7 @@ class SingleSearchStore {
     this.errorMessage = null;
     try {
       const res = await api.getSimilarKeyframes(videoId, keyframeId, { limit: Number(this.limit), model: this.modelSemantic });
+      this.similarFrame = `${videoId}-${keyframeId}`;      
       this.resultSimilar = res.results ?? [];
       this.currentPage = 1;
     } catch (err: any) {
