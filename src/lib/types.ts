@@ -1,5 +1,6 @@
 export type EmbeddingModel = 'siglip' | 'siglip2' | 'pe';
 export type AllModelTypes = 'siglip' | 'siglip2' | 'gte' | 'pe';
+export type VisualModel = 'dinov3';
 
 export type LogQueryMode =
   | 'keyframe'
@@ -12,6 +13,7 @@ export type LogQueryMode =
 
 export type SearchMode = 'semantic' | 'transcript' | 'ocr' | 'video_id' | 'detect' | 'reverse_search';
 export type TranscriptMethod = 'semantic' | 'keyword';
+export type SimilarKind = 'semantic' | 'visual';
 
 // --- Base Entities ---
 
@@ -186,7 +188,7 @@ export interface ListKeyframesParams {
 }
 
 export interface SimilarQueryParams {
-  model?: EmbeddingModel;
+  model?: EmbeddingModel | VisualModel;
   limit?: number;
 }
 
@@ -243,7 +245,7 @@ export interface TemporalQueryResponse {
 export interface SimilarResponse {
   video_id: string;
   keyframe_id: string;
-  model: EmbeddingModel;
+  model: EmbeddingModel | VisualModel;
   total?: number;
   results?: Item[];
 }

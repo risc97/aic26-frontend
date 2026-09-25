@@ -1,5 +1,5 @@
 import { ApiClient } from './api';
-import type { SearchMode, Item, TranscriptItem, OcrItem, EmbeddingModel, TranscriptFlatItem, TranscriptMethod } from './types';
+import type { SearchMode, Item, TranscriptItem, OcrItem, EmbeddingModel, VisualModel, SimilarKind, TranscriptFlatItem, TranscriptMethod } from './types';
 
 const api = new ApiClient();
 
@@ -19,6 +19,8 @@ class SingleSearchStore {
     }
   }
   modelSemantic = $state<EmbeddingModel>('siglip2'); // 'siglip' | 'siglip2' | 'pe'
+  modelReverse = $state<EmbeddingModel | VisualModel>('siglip2');
+  similarKind = $state<SimilarKind>('semantic');
   transcriptMethod = $state<TranscriptMethod>('semantic');
   isSearchFuzzy = $state(true);
   similarFrame = $state("");
@@ -163,10 +165,11 @@ class SingleSearchStore {
     this.isSearching = true;
 
     try {
+      const kind: SimilarKind = this.modelReverse === 'dinov3' ? 'visual' : 'semantic';
       const res = await api.searchSimilarByImage(this.uploadedFile!, {
         limit: Number(this.limit),
-        model: this.modelSemantic,
-      });
+        model: this.modelReverse,
+      }, kind);
       this.resultRaw = res.results ?? [];
     } catch (err: any) {
       this.errorMessage = err.message || 'Reverse search failed';
@@ -175,12 +178,14 @@ class SingleSearchStore {
     }
   }
 
-  async handleSimilarFrame(videoId: string, keyframeId: string) {
+  async handleSimilarFrame(videoId: string, keyframeId: string, kind: SimilarKind = 'semantic') {
     this.isSearching = true;
     this.errorMessage = null;
     try {
-      const res = await api.getSimilarKeyframes(videoId, keyframeId, { limit: Number(this.limit), model: this.modelSemantic });
-      this.similarFrame = `${videoId}-${keyframeId}`;      
+      const model = kind === 'visual' ? 'dinov3' : this.modelSemantic;
+      const res = await api.getSimilarKeyframes(videoId, keyframeId, { limit: Number(this.limit), model }, kind);
+      this.similarFrame = `${videoId}-${keyframeId}`;
+      this.similarKind = kind;
       this.resultSimilar = res.results ?? [];
       this.currentPage = 1;
     } catch (err: any) {

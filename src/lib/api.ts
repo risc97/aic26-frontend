@@ -12,6 +12,7 @@ import type {
   TemporalQueryResponse,
   SimilarResponse,
   SimilarQueryParams,
+  SimilarKind,
   ListKeyframesParams,
   FetchLogsParams,
   LogEntry,
@@ -263,10 +264,11 @@ export class ApiClient {
   async getSimilarKeyframes(
     videoId: string,
     keyframeId: string,
-    params?: SimilarQueryParams
+    params?: SimilarQueryParams,
+    kind: SimilarKind = 'semantic'
   ): Promise<SimilarResponse> {
     return this.request<SimilarResponse>(
-      `/similar/${encodeURIComponent(videoId)}/${encodeURIComponent(keyframeId)}`,
+      `/similar/${kind}/${encodeURIComponent(videoId)}/${encodeURIComponent(keyframeId)}`,
       { method: 'GET' },
       params as Record<string, unknown>
     );
@@ -275,13 +277,14 @@ export class ApiClient {
   async searchSimilarByImage(
     file: File | Blob,
     params?: SimilarQueryParams,
+    kind: SimilarKind = 'semantic',
     fileName = 'query_image.jpg'
   ): Promise<SimilarResponse> {
     const formData = new FormData();
     formData.append('file', file, fileName);
 
     return this.request<SimilarResponse>(
-      '/similar/upload',
+      `/similar/${kind}/upload`,
       {
         method: 'POST',
         body: formData,

@@ -14,6 +14,7 @@
     ApertureIcon,
     ArrowLineUpIcon,
     XIcon,
+    EyeIcon,
   } from 'phosphor-svelte';
   import { BORDER_STYLE, ACCENT_PALETTES } from './common/CommonStyle';
   import MyDropdown from './common/MyDropdown.svelte';
@@ -37,6 +38,12 @@
     { value: 'siglip2', label: 'siglip2' },
     { value: 'pe', label: 'pe' },
   ];
+
+  const REVERSE_MODEL_OPTIONS = [
+    ...MODEL_OPTIONS,
+    { value: 'dinov3', label: 'dinov3' },
+  ];
+
 
   const TRANSCRIPT_METHOD_OPTIONS = [
     { value: 'semantic', label: 'Semantic' },
@@ -80,8 +87,10 @@
     <!-- Input field -->
     <div class="inline-flex w-full items-center overflow-hidden {BORDER_STYLE} {ACCENT_PALETTES.blue.focusRing} px-2 gap-2 transition-all">
       
-      {#if singleSearch.searchMode === 'semantic' || singleSearch.searchMode === 'reverse_search'}
+      {#if singleSearch.searchMode === 'semantic'}
         <MyDropdown items={MODEL_OPTIONS} bind:value={singleSearch.modelSemantic} width="w-24" accent="blue"/>
+      {:else if singleSearch.searchMode === 'reverse_search'}
+        <MyDropdown items={REVERSE_MODEL_OPTIONS} bind:value={singleSearch.modelReverse} width="w-24" accent="blue"/>
       {:else if singleSearch.searchMode === 'transcript'}
         <MyDropdown items={TRANSCRIPT_METHOD_OPTIONS} bind:value={singleSearch.transcriptMethod} width="w-24" accent="blue"/>
       {/if}
@@ -174,7 +183,7 @@
         <MyInputbox type="text" label="Exclusion" bind:value={singleSearch.exclusion} width="w-5/8" height="h-10" accent="blue" layout="horizontal"/>
         <div class="inline-flex h-10 w-2/8 items-center gap-1 {BORDER_STYLE} bg-blue-100/80 p-1">
         <span class="shrink-0 px-1 text-sm font-semibold text-slate-900 select-none">
-          Similar frame
+          Similar frame ({singleSearch.similarKind})
         </span>
 
         <input
@@ -248,15 +257,29 @@
                     singleSearch.exclusion = `${singleSearch.exclusion},${currentItem.video_id}-${currentItem.keyframe_id}`;
                   }
                 },
-                {
-                  id: 'similar',
-                  label: 'Similar keyframes',
+                                {
+                  id: 'similar-semantic',
+                  label: 'Similar kf semantic',
                   icon: TildeIcon,
                   class: 'text-blue-700 hover:bg-blue-100 hover:text-blue-900',
                   run: (currentItem) => {
                     singleSearch.handleSimilarFrame(
                       currentItem.video_id,
-                      currentItem.keyframe_id
+                      currentItem.keyframe_id,
+                      'semantic'
+                    );
+                  }
+                },
+                {
+                  id: 'similar-visual',
+                  label: 'Similar kf visual',
+                  icon: EyeIcon,
+                  class: 'text-violet-700 hover:bg-violet-100 hover:text-violet-900',
+                  run: (currentItem) => {
+                    singleSearch.handleSimilarFrame(
+                      currentItem.video_id,
+                      currentItem.keyframe_id,
+                      'visual'
                     );
                   }
                 }
