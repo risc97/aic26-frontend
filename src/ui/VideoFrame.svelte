@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Toggle } from "bits-ui";
   import { apiClient, DresApiError, dresClient } from "../lib/api";
-  import { ACCENT_PALETTES, BORDER_STYLE, PRESSED_ANIM } from "./common/CommonStyle";
+  import { ACCENT_PALETTES, BORDER_STYLE, PRESSED_ANIM, } from "./common/CommonStyle";
   import { 
     RewindIcon, 
     LessThanIcon, 
@@ -27,9 +27,10 @@
     videoId: string;
     frameIdx: number;
     fps?: number;
-    qaHidden?: boolean;
+    qaMode?: 'answer' | 'review';
     qaAnswer?: string;
     isActive?: boolean;   // Parent may hide instead destroy, pass this to pause playback
+    isTrakeItem?: boolean;
   }
   
   let {
@@ -37,12 +38,15 @@
     videoId = '',
     frameIdx = $bindable(0),
     fps = $bindable(0),
-    qaHidden = false,
+    qaMode = 'answer',
     qaAnswer = $bindable(''),
-    isActive = true
+    isActive = true,
+    isTrakeItem = false
   }: Props = $props();
 
   $inspect(fps, 'fps');
+
+  let hasAnswer = $derived(qaAnswer.trim() !== '');
 
   let wasActive = $state(isActive);
 
@@ -121,7 +125,7 @@
   }
 
   async function handleSingleSubmit() {
-    if (appState.qaEnabled && qaAnswer.trim() !== '') {
+    if (hasAnswer) {
       // QA submit
       try {
         const res = await dresClient.submitQa(videoId, timestampMs, qaAnswer.trim());
@@ -216,25 +220,10 @@
     ></video>
   </div>
 
-  {#if appState.qaEnabled}
-    <div class="{BORDER_STYLE} p-1 mt-1 flex flex-row gap-1 items-center">
-      <label class="text-sm text-slate-800 select-none" for={`answer-${videoId}-${frameIdx}`}>
-        <ChatCenteredTextIcon size="20px"/>
-      </label>
-      <input
-        id={`answer-${videoId}-${frameIdx}`}
-        type="text"
-        class="w-full bg-white p-0.5 text-sm text-slate-800 placeholder:text-slate-400 {accentPalette.focusRing} rounded focus:outline-none"
-        placeholder="Type the answer for this frame..."
-        bind:value={qaAnswer}
-      />
-    </div>
-  {/if}
-
   <!-- Control area -->
-  <div class="flex justify-between items-center w-full">
+  <div class="flex items-center w-full gap-1.5">
     <!-- Left control area -->
-    <div class="flex items-center gap-1.5">
+    <div class="flex items-center gap-1.5 shrink-0">
       <button 
       class="flex h-9 w-10 {BORDER_STYLE} bg-white {accentPalette.textDark} {accentPalette.hoverSubtle} {PRESSED_ANIM} items-center justify-center text-sm font-semibold outline-none"
       onpointerdown={(e) => startSeeking(-MULTIFRAME_INTERVAL, e)}
@@ -295,7 +284,7 @@
         <TargetIcon size="18px" weight="bold"/>
         <span>#{frameIdx} ({displayTime(frameIdx / fps)})</span>
       </button>
-      {#if !qaHidden}
+      {#if qaMode === 'answer'}
       <Toggle.Root
         pressed={appState.qaEnabled}
         onPressedChange={(enabled) => (appState.qaEnabled = enabled)}
@@ -306,11 +295,35 @@
         <QuestionIcon size="18px" weight="bold" />
         QA
       </Toggle.Root>
+      {:else if hasAnswer && qaMode === 'review'}
+      <div class="flex h-9 w-14 gap-1 items-center justify-center {BORDER_STYLE} font-sm font-semibold bg-emerald-500 text-white select-none">
+        <QuestionIcon size="18px" weight="bold" />
+        QA
+      </div>
       {/if}
     </div>
 
+    <!-- Middle: QA input, takes remaining space so it sits centered between the groups -->
+    {#if (qaMode === 'answer' && appState.qaEnabled) || (hasAnswer && qaMode === 'review')}
+      <div class="{BORDER_STYLE} p-1 flex-1 flex flex-row gap-1 items-center min-w-0">
+        <label class="text-sm text-slate-800 select-none shrink-0" for={`answer-${videoId}-${frameIdx}`}>
+          <ChatCenteredTextIcon size="20px"/>
+        </label>
+        <input
+          id={`answer-${videoId}-${frameIdx}`}
+          type="text"
+          class="w-full bg-white p-0.5 text-sm text-slate-800 placeholder:text-slate-400 {accentPalette.focusRing} rounded focus:outline-none"
+          placeholder={qaMode === 'review' ? "" : "Type the answer for this frame..."}
+          disabled={qaMode === 'review'}
+          bind:value={qaAnswer}
+        />
+      </div>
+    {:else}
+      <div class="flex-1"></div>
+    {/if}
+
     <!-- Right control area -->
-    <div class="flex items-center gap-1.5">
+    <div class="flex items-center gap-1.5 shrink-0">
       <div class="flex w-36 h-9 items-center justify-center p-1 gap-1 {BORDER_STYLE} {accentPalette.textDark} bg-white text-sm font-bold">
         <span>#{currentFrameIdx} ({displayTime(displayCurrentTime)})</span>
       </div>
@@ -364,6 +377,7 @@
         {/if}
       </button>
 
+      {#if !isTrakeItem}
       <button
         type="button"
         class="flex items-center justify-center px-0.5 py-1 gap-0.5 {BORDER_STYLE} text-sm font-bold transition-all {PRESSED_ANIM} {animSubmit ? 'bg-amber-400 text-slate-900' : `${ACCENT_PALETTES.amber.bg} ${ACCENT_PALETTES.amber.hover} text-slate-100`}"
@@ -383,6 +397,7 @@
         <span class="hidden xl:inline">Submit</span>
         {/if}
       </button>
+      {/if}
     </div>
   </div>
 {:else}

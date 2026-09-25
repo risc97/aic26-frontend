@@ -48,13 +48,13 @@ class ReviewQueue {
     let err = this.loadReviewQueue(temp);
   }
 
-  add(item: ReviewItem, answer?: string) {
-    this.items.push({ ...item, answer });
+  add(item: ReviewItem) {
+    this.items.push({ ...item });
     this.serializeReviewQueue();
   }
 
-  addTop(item: ReviewItem, answer?: string) {
-    this.items.unshift({ ...item, answer });
+  addTop(item: ReviewItem) {
+    this.items.unshift({ ...item });
     this.serializeReviewQueue();
   }
 

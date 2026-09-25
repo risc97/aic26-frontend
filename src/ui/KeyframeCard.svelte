@@ -298,7 +298,7 @@
             const reviewItem: SingleReviewItem = {
               videoId: videoId,
               frameIndex: frameIndex,
-              answer: qaAnswer || undefined
+              answer: appState.qaEnabled ? qaAnswer : undefined
             };
             reviewQueue.addTop(reviewItem);
           }}
@@ -323,7 +323,7 @@
             const reviewItem: SingleReviewItem = {
               videoId: videoId,
               frameIndex: frameIndex,
-              answer: qaAnswer || undefined
+              answer: appState.qaEnabled ? qaAnswer : undefined
             };
             reviewQueue.add(reviewItem);
           }}

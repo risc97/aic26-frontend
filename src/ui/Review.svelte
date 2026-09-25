@@ -34,6 +34,10 @@
   let frameIndex = $state(0);
   let rawBuffer = $state('');
   let parseResult = $derived(reviewQueue.parseReviewQueue(rawBuffer));
+  
+  let qaAnswer = $state("");
+
+  let activeIsTrake = $state(false);
 
   let animTrakeSubmit = $state(false);
 
@@ -92,9 +96,10 @@
     target.value = '';
   }
 
-  function handleLoad() {
+  function handleLoad(isTrake: boolean = false) {
     activeVideoId = videoId;
     activeFrameIndex = frameIndex;
+    activeIsTrake = isTrake;
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -152,12 +157,14 @@
   }
 
   async function handleTrakeSubmit(items: TrakeReviewItem) {
-    try {
-      const res = await dresClient.submitTrake(items.videoId, items.frameIndexArray);
-      toast.info(`Submitted TRAKE: ${res}`);
-    } catch(error) {
-      if(!(error instanceof DresApiError)) return;
-      toast.error(`Error submitting TRAKE: ${error.message}`);
+    if(confirm(`Do you want to submit TRAKE?\n\nTR-${items.videoId}-${items.frameIndexArray.join(',')}`)) {
+      try {
+        const res = await dresClient.submitTrake(items.videoId, items.frameIndexArray);
+        toast.info(`Submitted TRAKE: ${res}`);
+      } catch(error) {
+        if(!(error instanceof DresApiError)) return;
+        toast.error(`Error submitting TRAKE: ${error.message}`);
+      }
     }
   }
 
@@ -170,7 +177,7 @@
     }
   });
 
-  // $inspect(reviewQueue.items, "review queue items changed")
+  $inspect(reviewQueue.items, "review queue items changed")
 </script>
 
 {#snippet ReviewItemContrl(index: number)}
@@ -223,6 +230,7 @@
       currentItemIndex = {index, event: 0};
       frameIndex = item.frameIndex;
       videoId = item.videoId;
+      qaAnswer = item.answer || "";
       handleLoad();
     }}
   >
@@ -267,7 +275,8 @@
               currentItemIndex = {index, event: frameIndexPosition};
               frameIndex = itemFrameIndex;
               videoId = item.videoId;
-              handleLoad();
+              qaAnswer = item.answer || "";
+              handleLoad(true);
             }}
           >
             E{frameIndexPosition + 1}: #{itemFrameIndex}
@@ -280,8 +289,8 @@
     <div class="flex shrink-0 items-center gap-2">
       <button
         type="button"
-        class="rounded border-2 border-amber-900 flex h-6 w-6 items-center justify-center {ACCENT_PALETTES.amber.text} {PRESSED_ANIM} {ACCENT_PALETTES.rose.hoverSubtle} {animTrakeSubmit ? 'bg-amber-400 text-slate-900' : `${ACCENT_PALETTES.amber.hover}`}"
-        title="Submit"
+        class="rounded border-2 border-amber-900 flex h-6 w-6 items-center justify-center text-white {PRESSED_ANIM} {animTrakeSubmit ? 'bg-amber-400' : `${ACCENT_PALETTES.amber.bg} ${ACCENT_PALETTES.amber.hover}`}"
+        title="Submit TRAKE"
         onclick={() => {
           animTrakeSubmit = true;
           setTimeout(() => {
@@ -291,9 +300,9 @@
         }}
       >
         {#if animTrakeSubmit}
-        <AirplaneTiltIcon size="14px" weight="bold" />
+        <AirplaneTiltIcon size="16px" weight="bold" />
         {:else}
-        <AirplaneTakeoffIcon size="14px" weight="bold" />
+        <AirplaneTakeoffIcon size="16px" weight="bold" />
         {/if}
       </button>
       {@render ReviewItemContrl(index)}
@@ -325,10 +334,36 @@
       <Tabs.Root
         value={submissionView}
         onValueChange={(value) => {
-          if (value) {
-            submissionView = value;
-            if (value === 'raw') {
-              rawBuffer = reviewQueue.raw;
+          if (!value) return;
+          const prevView = submissionView;
+          submissionView = value;
+
+          if (value === 'raw') {
+            rawBuffer = reviewQueue.raw;
+          } else if (value === 'list' && prevView === 'raw') {
+            // Raw edits may have changed the item under the current selection
+            // (its answer, its frame index, or removed it entirely) — resync.
+            const item = reviewQueue.items[currentItemIndex.index];
+            if (item) {
+              videoId = item.videoId;
+              if (isSingleReviewItem(item)) {
+                frameIndex = item.frameIndex;
+              } else {
+                frameIndex =
+                  item.frameIndexArray[currentItemIndex.event] ??
+                  item.frameIndexArray[0] ??
+                  0;
+              }
+              qaAnswer = item.answer || "";
+              handleLoad();
+            } else {
+              // item was deleted/edited away in raw view
+              currentItemIndex = { index: 0, event: 0 };
+              videoId = "";
+              frameIndex = 0;
+              qaAnswer = "";
+              activeVideoId = "";
+              activeFrameIndex = 0;
             }
           }
         }}
@@ -447,12 +482,12 @@
       <button
         type="button"
         class="flex h-8 px-4 items-center justify-center gap-1.5 bg-white {BORDER_STYLE} {emerald.textDark} {emerald.hoverSubtle} text-sm font-bold {PRESSED_ANIM}"
-        onclick={handleLoad}
+        onclick={() => handleLoad()}
       >
         <PlayIcon size="16px" weight="bold" />
         Load
       </button>
     </div>
-    <VideoFrame videoId={activeVideoId} frameIdx={activeFrameIndex} bind:fps={fps} {isActive} qaHidden={true} accent="emerald" />
+    <VideoFrame videoId={activeVideoId} frameIdx={activeFrameIndex} bind:fps={fps} bind:qaAnswer={qaAnswer} {isActive} isTrakeItem={activeIsTrake} qaMode="review" accent="emerald" />
   </div>
 </div>  
