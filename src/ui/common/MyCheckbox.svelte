@@ -34,7 +34,7 @@
   }
 
   let {
-    label = "Phrase",
+    label = "",
     checked = $bindable(false),
     height = "h-6",
     accent = "blue",
