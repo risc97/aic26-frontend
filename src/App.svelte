@@ -5,12 +5,14 @@
   import SingleSearch from './ui/SingleSearch.svelte';
   import MultipleSearch from './ui/MultipleSearch.svelte';
   import Review from './ui/Review.svelte';
+  import SubmissionHistoryModal from './ui/SubmissionHistoryModal.svelte';
   import { auth } from './lib/auth.svelte';
   import { Toaster} from 'svelte-sonner'
     import Logs from './ui/Logs.svelte';
 
   let mode = $state('single');
   let isConfigOpen = $state(false);
+  let isHistoryOpen = $state(false);
 </script>
 
 <script module lang="ts">
@@ -32,10 +34,10 @@
   </div>
   <div class="flex items-center gap-1 font-semibold font-mono text-xs">
     <span>CISC97 · </span>
-    <a href="https://github.com/hydroshiba" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@hydroshiba</a> ·  
-    <a href="https://github.com/tb-tian" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@tian</a> ·  
-    <a href="https://github.com/zeeptobean" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@zeept</a> ·  
-    <a href="https://github.com/DVG3" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@dvg3</a> ·  
+    <a href="https://github.com/hydroshiba" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@hydroshiba</a> ·
+    <a href="https://github.com/tb-tian" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@tian</a> ·
+    <a href="https://github.com/zeeptobean" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@zeept</a> ·
+    <a href="https://github.com/DVG3" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@dvg3</a> ·
     <a href="https://github.com/callmelucian" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-slate-700">@callmelucian</a>
   </div>
 </footer>
@@ -44,9 +46,10 @@
 <div inert={!auth.isAuthenticated ? true : undefined} class="min-h-screen">
   <div class="h-screen flex flex-col overflow-hidden bg-slate-50">
     <div class="sticky top-0 z-30">
-      <HeaderNew 
-        bind:mode={mode} 
-        onOpenConfigModal={() => isConfigOpen = true} 
+      <HeaderNew
+        bind:mode={mode}
+        onOpenConfigModal={() => isConfigOpen = true}
+        onOpenHistoryModal={() => isHistoryOpen = true}
       />
     </div>
 
@@ -72,7 +75,9 @@
     </main>
 
     <ConfigModal bind:open={isConfigOpen} />
-    
+
+    <SubmissionHistoryModal bind:open={isHistoryOpen} />
+
     <AuthModal />
   </div>
 </div>

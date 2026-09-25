@@ -26,13 +26,15 @@ import { config } from './config.svelte';
 
 import {
   mockConfig,
-  generateMockImageUrl, 
-  mockKeyframeQueryResponse, 
-  mockTranscriptResponse, 
-  mockOcrResponse, 
-  mockKeyframeListResponse, 
-  mockSimilarResponse 
+  generateMockImageUrl,
+  mockKeyframeQueryResponse,
+  mockTranscriptResponse,
+  mockOcrResponse,
+  mockKeyframeListResponse,
+  mockSimilarResponse
 } from './mock.svelte';
+
+import { submissionHistory } from './submissionHistory.svelte';
 
 export class ApiError extends Error {
   constructor(
@@ -125,7 +127,7 @@ export class ApiClient {
       if (path.includes('/query/ocr')) return mockOcrResponse as unknown as T;
       if (path.includes('/keyframes')) return mockKeyframeListResponse as unknown as T;
       if (path.includes('/similar')) return mockSimilarResponse as unknown as T;
-      
+
       return {} as T;
     }
 
@@ -449,9 +451,31 @@ export class DresApiClient {
   ): Promise<DresSubmissionResult> {
     const startMs = Math.max(0, ms - rangeMs);
     const endMs = ms + rangeMs;
-    return this.submit<DresKisAnswer>(config.evaluationId, config.sessionId, {
-      answerSets: [{ answers: [{ mediaItemName: videoId, start: startMs, end: endMs }] }],
-    });
+    try {
+      const result = await this.submit<DresKisAnswer>(config.evaluationId, config.sessionId, {
+        answerSets: [{ answers: [{ mediaItemName: videoId, start: startMs, end: endMs }] }],
+      });
+      submissionHistory.add({
+        type: 'KIS',
+        videoId,
+        timeMs: ms,
+        rangeMs,
+        success: result.status,
+        correct: result.correct,
+        description: result.description,
+      });
+      return result;
+    } catch (err) {
+      submissionHistory.add({
+        type: 'KIS',
+        videoId,
+        timeMs: ms,
+        rangeMs,
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
   }
 
   /** QA: submit a free-text answer encoded as QA-<ANSWER>-<VIDEO_ID>-<TIME_MS>. */
@@ -460,9 +484,31 @@ export class DresApiClient {
     timeMs: number,
     answer: string
   ): Promise<DresSubmissionResult> {
-    return this.submit<DresTextAnswer>(config.evaluationId, config.sessionId, {
-      answerSets: [{ answers: [{ text: `QA-${answer}-${videoId}-${timeMs}` }] }],
-    });
+    try {
+      const result = await this.submit<DresTextAnswer>(config.evaluationId, config.sessionId, {
+        answerSets: [{ answers: [{ text: `QA-${answer}-${videoId}-${timeMs}` }] }],
+      });
+      submissionHistory.add({
+        type: 'QA',
+        videoId,
+        timeMs,
+        answer,
+        success: result.status,
+        correct: result.correct,
+        description: result.description,
+      });
+      return result;
+    } catch (err) {
+      submissionHistory.add({
+        type: 'QA',
+        videoId,
+        timeMs,
+        answer,
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
   }
 
   /** TRAKE: submit an ordered list of frame ids encoded as TR-<VIDEO_ID>-<FRAME_ID1>,<FRAME_ID2>,... */
@@ -470,9 +516,29 @@ export class DresApiClient {
     videoId: string,
     frameIds: Array<string | number>
   ): Promise<DresSubmissionResult> {
-    return this.submit<DresTextAnswer>(config.evaluationId, config.sessionId, {
-      answerSets: [{ answers: [{ text: `TR-${videoId}-${frameIds.join(',')}` }] }],
-    });
+    try {
+      const result = await this.submit<DresTextAnswer>(config.evaluationId, config.sessionId, {
+        answerSets: [{ answers: [{ text: `TR-${videoId}-${frameIds.join(',')}` }] }],
+      });
+      submissionHistory.add({
+        type: 'TRAKE',
+        videoId,
+        frameIds,
+        success: result.status,
+        correct: result.correct,
+        description: result.description,
+      });
+      return result;
+    } catch (err) {
+      submissionHistory.add({
+        type: 'TRAKE',
+        videoId,
+        frameIds,
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
   }
 }
 

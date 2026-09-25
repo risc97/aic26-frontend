@@ -4,16 +4,18 @@
   import { mockConfig } from '../lib/mock.svelte';
   import { appState } from '../lib/appState.svelte';
   import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from './common/CommonStyle';
-  import { CpuIcon, GearIcon, QuestionIcon } from 'phosphor-svelte';
+  import { CpuIcon, GearIcon, QuestionIcon, ClockCounterClockwiseIcon } from 'phosphor-svelte';
 
   interface HeaderProps {
     onOpenConfigModal: () => void;
+    onOpenHistoryModal: () => void;
     mode: string;
   }
 
-  let { 
-    onOpenConfigModal, 
-    mode = $bindable('single'), 
+  let {
+    onOpenConfigModal,
+    onOpenHistoryModal,
+    mode = $bindable('single'),
   }: HeaderProps = $props();
 
   // Dynamically change logo background based on active mode
@@ -50,8 +52,8 @@
 
     <!-- Center: Mode Switcher -->
     <div class="flex shrink-0 items-center justify-self-center gap-2">
-      <Tabs.Root 
-        value={mode} 
+      <Tabs.Root
+        value={mode}
         onValueChange={(val) => {
           if (val) {
             mode = val;
@@ -101,22 +103,39 @@
         QA
       </Toggle.Root>
     {/if}
-      <Tooltip.Provider>
-        <Tooltip.Root>
-          <Tooltip.Trigger
-            type="button"
-            onclick={onOpenConfigModal}
-            class="flex h-9 w-9 {PRESSED_ANIM} {BORDER_STYLE} items-center justify-center bg-white text-slate-700 hover:bg-slate-100 outline-none"
-          >
-            <GearIcon size="16px" weight="bold"/>
-          </Tooltip.Trigger>
-          <Tooltip.Content class="z-50 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
-            Configuration
-            <Tooltip.Arrow class="border-neutral-900 fill-white" />
-          </Tooltip.Content>
-        </Tooltip.Root>
+      <div class="flex items-center gap-2">
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger
+              type="button"
+              onclick={onOpenHistoryModal}
+              class="flex h-9 w-9 {PRESSED_ANIM} {BORDER_STYLE} items-center justify-center bg-white text-slate-700 hover:bg-slate-100 outline-none"
+            >
+              <ClockCounterClockwiseIcon size="16px" weight="bold"/>
+            </Tooltip.Trigger>
+            <Tooltip.Content class="z-50 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
+              Submission History
+              <Tooltip.Arrow class="border-neutral-900 fill-white" />
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
 
-      </Tooltip.Provider>
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger
+              type="button"
+              onclick={onOpenConfigModal}
+              class="flex h-9 w-9 {PRESSED_ANIM} {BORDER_STYLE} items-center justify-center bg-white text-slate-700 hover:bg-slate-100 outline-none"
+            >
+              <GearIcon size="16px" weight="bold"/>
+            </Tooltip.Trigger>
+            <Tooltip.Content class="z-50 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
+              Configuration
+              <Tooltip.Arrow class="border-neutral-900 fill-white" />
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
+      </div>
     </div>
 
   </div>
