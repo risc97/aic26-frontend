@@ -56,12 +56,13 @@
           <SingleSearch />
         {:else if mode === 'multiple'}
           <MultipleSearch />
-        {:else if mode === 'logs'}
-          <Logs />
         {/if}
 
         <div class={mode === 'review' ? 'contents' : 'hidden'}>
           <Review isActive={mode === 'review'} />
+        </div>
+        <div class={mode === 'logs' ? 'contents' : 'hidden'}>
+          <Logs />
         </div>
 
         {#if mode === 'single' || mode === 'multiple'}
