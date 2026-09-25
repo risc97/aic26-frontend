@@ -11,6 +11,7 @@ export type LogQueryMode =
   | 'temporal_detect';
 
 export type SearchMode = 'semantic' | 'transcript' | 'ocr' | 'video_id' | 'detect' | 'reverse_search';
+export type TranscriptMethod = 'semantic' | 'keyword';
 
 // --- Base Entities ---
 

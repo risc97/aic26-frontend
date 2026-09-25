@@ -38,6 +38,11 @@
     { value: 'pe', label: 'pe' },
   ];
 
+  const TRANSCRIPT_METHOD_OPTIONS = [
+    { value: 'semantic', label: 'Semantic' },
+    { value: 'keyword', label: 'Keyword' },
+  ];
+
   function handleKeyDown(e: KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e?.preventDefault();
@@ -78,9 +83,9 @@
       {#if singleSearch.searchMode === 'semantic' || singleSearch.searchMode === 'reverse_search'}
         <MyDropdown items={MODEL_OPTIONS} bind:value={singleSearch.modelSemantic} width="w-24" accent="blue"/>
       {:else if singleSearch.searchMode === 'transcript'}
-        <MyCheckbox label="Keyword" bind:checked={singleSearch.isTranscriptExact}/>
+        <MyDropdown items={TRANSCRIPT_METHOD_OPTIONS} bind:value={singleSearch.transcriptMethod} width="w-24" accent="blue"/>
       {/if}
-      {#if (singleSearch.searchMode === 'transcript' && singleSearch.isTranscriptExact) || singleSearch.searchMode === 'ocr'}
+      {#if (singleSearch.searchMode === 'transcript' && singleSearch.transcriptMethod === 'keyword') || singleSearch.searchMode === 'ocr'}
         <Tooltip.Provider delayDuration={300}>
           <Tooltip.Root>
             <Tooltip.Trigger>

@@ -1,5 +1,5 @@
 import { ApiClient } from './api';
-import type { SearchMode, Item, TranscriptItem, OcrItem, EmbeddingModel, TranscriptFlatItem } from './types';
+import type { SearchMode, Item, TranscriptItem, OcrItem, EmbeddingModel, TranscriptFlatItem, TranscriptMethod } from './types';
 
 const api = new ApiClient();
 
@@ -19,7 +19,7 @@ class SingleSearchStore {
     }
   }
   modelSemantic = $state<EmbeddingModel>('siglip2'); // 'siglip' | 'siglip2' | 'pe'
-  isTranscriptExact = $state(false);
+  transcriptMethod = $state<TranscriptMethod>('semantic');
   isSearchFuzzy = $state(true);
   similarFrame = $state("");
   exclusion = $state<string>("");
@@ -121,7 +121,7 @@ class SingleSearchStore {
         });
         this.resultRaw = res.results ?? [];
       } else if (this.searchMode === 'transcript') {
-        const res = this.isTranscriptExact ? await api.queryTranscriptExact({
+        const res = this.transcriptMethod === 'keyword' ? await api.queryTranscriptExact({
           query: this.query,
           limit: Number(this.limit),
           fuzzy: this.isSearchFuzzy,
