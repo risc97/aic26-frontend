@@ -156,7 +156,7 @@ export class ApiClient {
   // --- 1. Keyframe & Video Media Endpoints ---
 
   async listKeyframes(videoId: string, params?: ListKeyframesParams): Promise<KeyframeListResponse> {
-    return this.request<KeyframeListResponse>(
+    return this.requestMedia<KeyframeListResponse>(
       `/keyframe/${encodeURIComponent(videoId)}/keyframes`,
       { method: 'GET' },
       params as Record<string, unknown>
