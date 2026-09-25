@@ -12,11 +12,14 @@ const EVALUATION_ID_STORAGE_KEY = 'evaluation_id';
 
 type SetUrlOptions = { check?: boolean };
 
+export type EvaluationInfo = { id: string; name: string };
+
 class AppConfig {
   baseUrl = $state("");
   mediaUrl = $state("");
   private _sessionId = $state("");
-  evaluationId = "";
+  evaluationId = $state("");
+  evaluationList = $state<EvaluationInfo[]>([]);
   baseApiConnected = $state(false);
   mediaApiConnected = $state(false);
   baseApiPending = $state(false);
@@ -87,6 +90,7 @@ class AppConfig {
 
     if (changed) {
       this.setEvaluationId("");
+      this.setEvaluationList([]);
     }
   }
 
@@ -105,6 +109,10 @@ class AppConfig {
 
   clearEvaluationId() {
     this.setEvaluationId('');
+  }
+
+  setEvaluationList(list: EvaluationInfo[]) {
+    this.evaluationList = list;
   }
 
   async checkBaseHealth() {

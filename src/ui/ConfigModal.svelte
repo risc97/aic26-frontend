@@ -47,13 +47,20 @@
     try {
       loadEvaluationStatus = "loading";
       const res = await dresClient.getEvaluationList(config.sessionId);
+      config.setEvaluationList(res);
       if (res.length === 0) {
         toast.info("No evaluations found for this session ID.");
+        config.setEvaluationId("");
         loadEvaluationStatus = "none";
         return;
       }
-      config.evaluationId = res[0].id;
-      toast.success(`Loaded evaluation: ${res[0].name} (ID: ${res[0].id})`);
+      // Keep the current selection if it's still in the refreshed list,
+      // otherwise fall back to the first evaluation.
+      const stillValid = res.some((e) => e.id === config.evaluationId);
+      if (!stillValid) {
+        config.evaluationId = res[0].id;
+      }
+      toast.success(`Loaded ${res.length} evaluation${res.length === 1 ? "" : "s"}.`);
       loadEvaluationStatus = "success";
     } catch (error) {
       if (!(error instanceof DresApiError)) return;
@@ -61,6 +68,15 @@
       toast.error(`Error loading evaluation list: ${error.message}`)
       loadEvaluationStatus = "error";
       return;
+    }
+  }
+
+  function handleSelectEvaluation(e: Event) {
+    const id = (e.currentTarget as HTMLSelectElement).value;
+    config.evaluationId = id;
+    const selected = config.evaluationList.find((ev) => ev.id === id);
+    if (selected) {
+      toast.success(`Selected evaluation: ${selected.name}`);
     }
   }
 
@@ -237,6 +253,28 @@
                 <EyeIcon size="24px" />
               {/if}
             </Button.Root>
+          </div>
+
+          <!-- Evaluation picker -->
+          <div class="flex flex-col gap-1">
+            <label for="evaluation-id" class="text-xs font-semibold text-slate-700 select-none">
+              Evaluation
+            </label>
+            <select
+              id="evaluation-id"
+              value={config.evaluationId}
+              onchange={handleSelectEvaluation}
+              disabled={config.evaluationList.length === 0}
+              class="min-w-0 flex-1 {BORDER_STYLE} bg-white p-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {#if config.evaluationList.length === 0}
+                <option value="" disabled selected>No evaluations loaded</option>
+              {:else}
+                {#each config.evaluationList as evaluation (evaluation.id)}
+                  <option value={evaluation.id}>{evaluation.name} ({evaluation.id})</option>
+                {/each}
+              {/if}
+            </select>
           </div>
         </div>
 
