@@ -20,7 +20,7 @@ class SingleSearchStore {
   }
   modelSemantic = $state<EmbeddingModel>('siglip2'); // 'siglip' | 'siglip2' | 'pe'
   isTranscriptExact = $state(false);
-  isSearchPhrase = $state(false);
+  isSearchFuzzy = $state(true);
   similarFrame = $state("");
   exclusion = $state<string>("");
   videoStartMs = $state<number | null>(null);
@@ -124,7 +124,7 @@ class SingleSearchStore {
         const res = this.isTranscriptExact ? await api.queryTranscriptExact({
           query: this.query,
           limit: Number(this.limit),
-          phrase: this.isSearchPhrase,
+          fuzzy: this.isSearchFuzzy,
         }) : await api.queryTranscriptSemantic({
           query: this.query,
           limit: Number(this.limit),
@@ -142,7 +142,7 @@ class SingleSearchStore {
         const res = await api.queryOcr({
           query: this.query,
           limit: Number(this.limit),
-          phrase: this.isSearchPhrase,
+          fuzzy: this.isSearchFuzzy,
         });
         this.resultRaw = res.results ?? [];
       } else if (this.searchMode === 'video_id') {

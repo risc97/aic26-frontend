@@ -155,13 +155,13 @@ export interface TranscriptSemanticQueryRequest {
 export interface TranscriptExactQueryRequest {
   query: string;
   limit?: number;
-  phrase?: boolean;
+  fuzzy?: boolean;
 }
 
 export interface OcrQueryRequest {
   query: string;
   limit?: number;
-  phrase?: boolean;
+  fuzzy?: boolean;
 }
 
 export interface TemporalQueryRequest {

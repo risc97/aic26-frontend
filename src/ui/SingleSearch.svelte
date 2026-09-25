@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Toggle, Pagination } from 'bits-ui';
+  import { Toggle, Pagination, Tooltip } from 'bits-ui';
   import { singleSearch } from '../lib/singleSearchImpl.svelte';
   import {
     SparkleIcon,
@@ -78,10 +78,25 @@
       {#if singleSearch.searchMode === 'semantic' || singleSearch.searchMode === 'reverse_search'}
         <MyDropdown items={MODEL_OPTIONS} bind:value={singleSearch.modelSemantic} width="w-24" accent="blue"/>
       {:else if singleSearch.searchMode === 'transcript'}
-        <MyCheckbox label="Exact" bind:checked={singleSearch.isTranscriptExact}/>
+        <MyCheckbox label="Keyword" bind:checked={singleSearch.isTranscriptExact}/>
       {/if}
-      {#if singleSearch.isTranscriptExact || singleSearch.searchMode === 'ocr'}
-        <MyCheckbox label="Phrase" bind:checked={singleSearch.isSearchPhrase}/>
+      {#if (singleSearch.searchMode === 'transcript' && singleSearch.isTranscriptExact) || singleSearch.searchMode === 'ocr'}
+        <Tooltip.Provider delayDuration={300}>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              {#snippet child({ props })}
+                <div {...props} class="shrink-0">
+                  <MyCheckbox label="Fuzzy" bind:checked={singleSearch.isSearchFuzzy}/>
+                </div>
+              {/snippet}
+            </Tooltip.Trigger>
+            <Tooltip.Content sideOffset={6} class="z-50 {BORDER_STYLE} bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-md">
+              Bật: tìm gần đúng
+              Tắt: khớp chính xác cụm từ
+              <Tooltip.Arrow class="border-neutral-900 fill-white" />
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
       {/if}
       {#if singleSearch.searchMode === 'reverse_search'}
         <input
