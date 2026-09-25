@@ -110,7 +110,7 @@
     } else {
       // KIS submit, +- 10ms range
       try {
-        const res = await dresClient.submitKis(videoId, timestampMs-10 < 0 ? 0 : timestampMs-10, timestampMs+10);
+        const res = await dresClient.submitKis(videoId, timestampMs);
         if(!res.status) {
           toast.error(`Error submitting KIS: ${res}`);
         } else {
