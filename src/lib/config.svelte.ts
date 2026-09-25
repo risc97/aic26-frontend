@@ -10,6 +10,9 @@ const SESSION_ID_STORAGE_KEY = 'session_id';
 const EVALUATION_ID = '';
 const EVALUATION_ID_STORAGE_KEY = 'evaluation_id';
 
+const KIS_RANGE_MS = 10;
+const KIS_RANGE_MS_STORAGE_KEY = 'kis_range_ms';
+
 type SetUrlOptions = { check?: boolean };
 
 export type EvaluationInfo = { id: string; name: string };
@@ -24,6 +27,7 @@ class AppConfig {
   mediaApiConnected = $state(false);
   baseApiPending = $state(false);
   mediaApiPending = $state(false);
+  kisRangeMs = $state(KIS_RANGE_MS);
   loadEvaluationStatus = $state<"none" | "loading" | "success" | "error">("none");
 
   // Backwards-compatible combined pending flag (true if either check is running)
@@ -36,6 +40,7 @@ class AppConfig {
     this.setMediaUrl(MEDIA_URL, { check: false });
     this.sessionId = this.readStored(SESSION_ID_STORAGE_KEY, SESSION_ID);
     this.evaluationId = this.readStored(EVALUATION_ID_STORAGE_KEY, EVALUATION_ID);
+    this.kisRangeMs = Number(this.readStored(KIS_RANGE_MS_STORAGE_KEY, String(KIS_RANGE_MS))) || KIS_RANGE_MS;
     this.checkHealth();
   }
 
@@ -44,6 +49,15 @@ class AppConfig {
       return localStorage.getItem(key) ?? fallback;
     }
     return fallback;
+  }
+
+  setKisRangeMs(ms: number) {
+    const clean = Number.isFinite(ms) ? Math.max(0, Math.round(ms)) : KIS_RANGE_MS;
+    this.kisRangeMs = clean;
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(KIS_RANGE_MS_STORAGE_KEY, String(clean));
+    }
   }
 
   setBaseUrl(url: string, { check = true }: SetUrlOptions = {}) {

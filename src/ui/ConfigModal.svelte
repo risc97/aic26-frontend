@@ -99,18 +99,22 @@
         e.preventDefault();
       }}
     >
-      <Dialog.Title class="text-lg font-bold select-none">Configuration</Dialog.Title>
+      <Dialog.Title class="text-lg font-bold select-none pb-3">Configuration</Dialog.Title>
 
-      <div
-        class="my-4 flex cursor-not-allowed items-center space-x-2 opacity-50 select-none pointer-events-none"
-      >
+      <div class="flex flex-col gap-1">
+        <label for="kis-range-ms" class="text-xs font-semibold text-slate-700 select-none">
+          KIS submission range (± ms)
+        </label>
         <input
-          type="checkbox"
-          id="mock-mode"
-          bind:checked={mockConfig.enabled}
-          class="rounded border-gray-700"
+          id="kis-range-ms"
+          type="number"
+          min="0"
+          step="1"
+          bind:value={config.kisRangeMs}
+          onblur={() => config.setKisRangeMs(config.kisRangeMs)}
+          placeholder="10"
+          class="min-w-0 flex-1 {BORDER_STYLE} bg-white p-2 text-sm"
         />
-        <label for="mock-mode" class="text-sm font-medium">Enable Testing mode</label>
       </div>
 
       <div class="mt-4 flex flex-col gap-2">

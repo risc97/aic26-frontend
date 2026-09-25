@@ -437,9 +437,11 @@ export class DresApiClient {
   /** KIS: submit a video + the start/end (ms) of the matching frame range. */
   async submitKis(
     videoId: string,
-    startMs: number,
-    endMs: number
+    ms: number,
+    rangeMs: number = config.kisRangeMs
   ): Promise<string> {
+    const startMs = Math.max(0, ms - rangeMs);
+    const endMs = ms + rangeMs;
     return this.submit<DresKisAnswer>(config.evaluationId, config.sessionId, {
       answerSets: [{ answers: [{ mediaItemName: videoId, start: startMs, end: endMs }] }],
     });
