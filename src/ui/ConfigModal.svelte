@@ -49,7 +49,7 @@
       const res = await dresClient.getEvaluationList(config.sessionId);
       config.setEvaluationList(res);
       if (res.length === 0) {
-        toast.info("No evaluations found for this session ID.");
+        toast.warning("No evaluations found for this session ID.");
         config.setEvaluationId("");
         loadEvaluationStatus = "none";
         return;

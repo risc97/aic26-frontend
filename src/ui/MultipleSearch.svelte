@@ -73,7 +73,15 @@
     
     try {
       const res = await dresClient.submitTrake(items[0].video_id, items.map(item => item.frame_idx));
-      toast.info(`Submitted TRAKE: ${res}`);
+      if(!res.status) {
+        toast.error(`Error submitting TRAKE: ${res}`);
+      } else {
+        if(res.correct) {
+          toast.success("CORRECT!");
+        } else {
+          toast.error(`WRONG!`);
+        }
+      }
     } catch(error) {
       if(!(error instanceof DresApiError)) return;
       toast.error(`Error submitting TRAKE: ${error.message}`);

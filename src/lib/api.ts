@@ -20,6 +20,7 @@ import type {
   TemporalDetectQueryResponse,
   DetectQueryResponse,
   DetectQueryRequest,
+  DresSubmissionResult,
 } from './types';
 import { config } from './config.svelte';
 
@@ -420,7 +421,7 @@ export class DresApiClient {
     evaluationId: string,
     sessionId: string,
     body: DresSubmitRequest<T>
-  ): Promise<string> {
+  ): Promise<DresSubmissionResult> {
     const url = this.buildUrl(`/submit/${encodeURIComponent(evaluationId)}`, sessionId);
     const response = await fetch(url, {
       method: 'POST',
@@ -431,7 +432,13 @@ export class DresApiClient {
     if (!response.ok) {
       throw new DresApiError(response.status, response.statusText, await this.parseErrorBody(response));
     }
-    return response.text();
+
+    const raw = (await response.json()) as { status: boolean; submission: string; description: string };
+    return {
+      status: raw.status,
+      correct: raw.submission?.toUpperCase() === 'CORRECT',
+      description: raw.description,
+    };
   }
 
   /** KIS: submit a video + the start/end (ms) of the matching frame range. */
@@ -439,7 +446,7 @@ export class DresApiClient {
     videoId: string,
     ms: number,
     rangeMs: number = config.kisRangeMs
-  ): Promise<string> {
+  ): Promise<DresSubmissionResult> {
     const startMs = Math.max(0, ms - rangeMs);
     const endMs = ms + rangeMs;
     return this.submit<DresKisAnswer>(config.evaluationId, config.sessionId, {
@@ -452,7 +459,7 @@ export class DresApiClient {
     videoId: string,
     timeMs: number,
     answer: string
-  ): Promise<string> {
+  ): Promise<DresSubmissionResult> {
     return this.submit<DresTextAnswer>(config.evaluationId, config.sessionId, {
       answerSets: [{ answers: [{ text: `QA-${answer}-${videoId}-${timeMs}` }] }],
     });
@@ -462,7 +469,7 @@ export class DresApiClient {
   async submitTrake(
     videoId: string,
     frameIds: Array<string | number>
-  ): Promise<string> {
+  ): Promise<DresSubmissionResult> {
     return this.submit<DresTextAnswer>(config.evaluationId, config.sessionId, {
       answerSets: [{ answers: [{ text: `TR-${videoId}-${frameIds.join(',')}` }] }],
     });

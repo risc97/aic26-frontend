@@ -94,7 +94,15 @@
       // QA submit
       try {
         const res = await dresClient.submitQa(videoId, timestampMs, qaAnswer.trim());
-        toast.info(`Submitted QA: ${res}`);
+        if(!res.status) {
+          toast.error(`Error submitting QA: ${res}`);
+        } else {
+          if(res.correct) {
+            toast.success("CORRECT!");
+          } else {
+            toast.error(`WRONG!`);
+          }
+        }
       } catch(error) {
         if(!(error instanceof DresApiError)) return;
         toast.error(`Error submitting QA: ${error.message}`);
@@ -103,7 +111,15 @@
       // KIS submit, +- 10ms range
       try {
         const res = await dresClient.submitKis(videoId, timestampMs-10 < 0 ? 0 : timestampMs-10, timestampMs+10);
-        toast.info(`Submitted KIS: ${res}`);
+        if(!res.status) {
+          toast.error(`Error submitting KIS: ${res}`);
+        } else {
+          if(res.correct) {
+            toast.success("CORRECT!");
+          } else {
+            toast.error(`WRONG!`);
+          }
+        }
       } catch(error) {
         if(!(error instanceof DresApiError)) return;
         toast.error(`Error submitting KIS: ${error.message}`);

@@ -258,6 +258,14 @@ export interface LogEntry {
   total?: number;
 }
 
+// --- DRES Submission ---
+
+export interface DresSubmissionResult {
+  status: boolean;
+  correct: boolean;
+  description: string;
+}
+
 // --- Error Schemas ---
 
 export interface ValidationError {

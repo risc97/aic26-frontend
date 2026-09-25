@@ -6,7 +6,7 @@
   import MultipleSearch from './ui/MultipleSearch.svelte';
   import Review from './ui/Review.svelte';
   import { auth } from './lib/auth.svelte';
-  import { Toaster, toast } from 'svelte-sonner'
+  import { Toaster} from 'svelte-sonner'
     import Logs from './ui/Logs.svelte';
 
   let mode = $state('single');
