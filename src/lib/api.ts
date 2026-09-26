@@ -200,7 +200,7 @@ export class ApiClient {
   }
 
   async getVideoFps(videoId: string): Promise<number | null> {
-    const response = await this.listKeyframes(videoId, { end_ms: 120000 });
+    const response = await this.listKeyframes(videoId, { end_ms: 100000000 });
     return response.keyframes?.[0]?.video_fps ?? null;
   }
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { Dialog, Button } from "bits-ui";
   import { config } from '../lib/config.svelte';
   import { mockConfig } from '../lib/mock.svelte';
@@ -14,6 +15,10 @@
   let showMediaUrl = $state(false);
   let showSessionId = $state(false);
   let loadEvaluationStatus = $state<"none" | "loading" | "success" | "error">("none");
+
+  // Tracks the last session id we already attempted an auto-load for,
+  // so we don't re-fire on every keystroke/blur with the same value.
+  let lastAttemptedSessionId = $state("");
 
   type EndpointKey = "base" | "media";
 
@@ -71,6 +76,20 @@
     }
   }
 
+  // Auto-loads the evaluation list (and auto-selects the first eval)
+  // whenever there's a session id we haven't already tried loading.
+  function autoLoadEvaluationIfNeeded() {
+    const sid = config.sessionId.trim();
+    if (sid && sid !== lastAttemptedSessionId) {
+      lastAttemptedSessionId = sid;
+      handleLoadEvaluation();
+    }
+  }
+
+  function handleSessionIdBlur() {
+    autoLoadEvaluationIfNeeded();
+  }
+
   function handleSelectEvaluation(e: Event) {
     const id = (e.currentTarget as HTMLSelectElement).value;
     config.evaluationId = id;
@@ -82,11 +101,18 @@
 
   async function handleLogout() {
     config.sessionId = "";
+    lastAttemptedSessionId = "";
     open = false;
     setTimeout(() => {
       auth.logout();
     }, 50);
   }
+
+  // If a session id is already present (e.g. restored from localStorage)
+  // when the modal first mounts, auto-load its evaluations too.
+  onMount(() => {
+    autoLoadEvaluationIfNeeded();
+  });
 </script>
 
 
@@ -240,6 +266,7 @@
               id="session-id"
               type={showSessionId ? "text" : "password"}
               bind:value={config.sessionId}
+              onblur={handleSessionIdBlur}
               placeholder="Paste a session id"
               class="min-w-0 flex-1 {BORDER_STYLE} bg-white p-2 text-sm"
             />

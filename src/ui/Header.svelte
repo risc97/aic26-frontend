@@ -5,6 +5,8 @@
   import { appState } from '../lib/appState.svelte';
   import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from './common/CommonStyle';
   import { CpuIcon, GearIcon, QuestionIcon, ClockCounterClockwiseIcon } from 'phosphor-svelte';
+    import { singleSearch } from '../lib/singleSearchImpl.svelte';
+    import { multipleSearch } from '../lib/multipleSearchImpl.svelte';
 
   interface HeaderProps {
     onOpenConfigModal: () => void;
@@ -94,7 +96,13 @@
     {#if mode === 'single' || mode === 'multiple'}
       <Toggle.Root
         pressed={appState.qaEnabled}
-        onPressedChange={(enabled) => (appState.qaEnabled = enabled)}
+        onPressedChange={(enabled) => {
+          appState.qaEnabled = enabled;
+          if (!enabled) {
+            singleSearch.qaAnswer = '';
+            multipleSearch.qaAnswer = '';
+          }
+        }}
         aria-label="Toggle QA mode"
         title="Toggle QA mode"
         class="flex h-8 w-16 gap-2 items-center justify-center {BORDER_STYLE} font-sm font-semibold data-[state=on]:bg-emerald-500 data-[state=on]:text-white {PRESSED_ANIM}"
