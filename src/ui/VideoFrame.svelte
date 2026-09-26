@@ -353,7 +353,7 @@
           }, 1500);
           const reviewItem: SingleReviewItem = {
             videoId: videoId,
-            frameIndex: frameIdx,
+            frameIndex: currentFrameIdx,
             answer: qaAnswer || undefined
           };
           reviewQueue.addTop(reviewItem);
@@ -378,7 +378,7 @@
           }, 1500);
           const reviewItem: SingleReviewItem = {
             videoId: videoId,
-            frameIndex: frameIdx,
+            frameIndex: currentFrameIdx,
             answer: qaAnswer || undefined
           };
           reviewQueue.add(reviewItem);
