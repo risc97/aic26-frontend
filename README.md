@@ -79,26 +79,7 @@ docker compose up -d --build
 
 ## Gallery
 
-### Single search
-![Single Search](assets/single.jpg)
-
-### Video modal
-![Video modal](assets/video-view.jpg)
-
-### Temporal search (Sequential view)
-![temporal seq view](assets/multiple-seq.jpg)
-
-### Temporal search (Event view)
-![temporal event view](assets/multiple-event.jpg)
-
-### Review
-![Review](assets/review.jpg)
-
-### Logs
-![Logs](assets/logs.jpg)
-
-### Configuration modal
-![Config](assets/config.jpg)
+See [GALLERY.md](assets/GALLERY.md)
 
 ## Credit
 
