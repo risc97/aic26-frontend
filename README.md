@@ -1,6 +1,7 @@
-# AIC26 Frontend
+# [HCMC AIC 2026] Frontend
 
-Single Page Application (SPA) frontend for the **AIC26** video search engine. 
+Frontend for the CISC97 video search engine at the HCMC AI Challenge 2026
+
 ---
 
 ## Tech stack
