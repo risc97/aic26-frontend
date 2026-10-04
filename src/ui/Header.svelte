@@ -1,7 +1,6 @@
 <script lang="ts">
   import { config } from '../lib/config.svelte';
   import { Tabs, Tooltip, Toggle } from "bits-ui";
-  import { mockConfig } from '../lib/mock.svelte';
   import { appState } from '../lib/appState.svelte';
   import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from './common/CommonStyle';
   import { CpuIcon, GearIcon, QuestionIcon, ClockCounterClockwiseIcon } from 'phosphor-svelte';

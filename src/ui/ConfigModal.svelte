@@ -2,7 +2,6 @@
   import { onMount } from "svelte";
   import { Dialog, Button } from "bits-ui";
   import { config } from '../lib/config.svelte';
-  import { mockConfig } from '../lib/mock.svelte';
   import { BORDER_STYLE, ACCENT_PALETTES, PRESSED_ANIM } from "./common/CommonStyle";
   import { auth } from "../lib/auth.svelte";
   import { EyeIcon, EyeSlashIcon } from "phosphor-svelte";
