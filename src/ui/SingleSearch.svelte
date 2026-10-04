@@ -254,7 +254,7 @@
                   icon: TrashIcon,
                   class: 'text-rose-700 hover:bg-rose-100 hover:text-rose-900',
                   run: (currentItem) => {
-                    singleSearch.exclusion = `${singleSearch.exclusion},${currentItem.video_id}-${currentItem.keyframe_id}`;
+                    singleSearch.exclusion = `${singleSearch.exclusion},${currentItem.video_id}|${currentItem.keyframe_id}`;
                   }
                 },
                                 {

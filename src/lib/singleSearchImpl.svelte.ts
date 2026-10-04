@@ -54,11 +54,11 @@ class SingleSearchStore {
     if(this.searchMode === 'video_id') return this.resultActive;
     return this.resultActive.filter(r => {
       for (const exclusion of this.exclusionArray) {
-        if (exclusion.includes('-')) {
-          // Format: "video_id-keyframe_id" -> filter just that specific keyframe
-          const lastHyphenIndex = exclusion.lastIndexOf('-');
-          const vid = exclusion.substring(0, lastHyphenIndex);
-          const kid = exclusion.substring(lastHyphenIndex + 1);
+        if (exclusion.includes('|')) {
+          // Format: "video_id|keyframe_id" -> filter just that specific keyframe
+          const lastPipeIndex = exclusion.lastIndexOf('|');
+          const vid = exclusion.substring(0, lastPipeIndex);
+          const kid = exclusion.substring(lastPipeIndex + 1);
 
           if (
             r.video_id === vid &&

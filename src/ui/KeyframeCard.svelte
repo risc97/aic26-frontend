@@ -168,9 +168,9 @@
       <div class="flex">
         <span
           class="group/id {BORDER_STYLE} truncate p-1 font-mono text-xl font-black {accentPalette.textDark}"
-          title={`${videoId}-${keyframeId}`}
+          title={`${videoId}|${keyframeId}`}
         >
-          {videoId}<span class={showFullKeyframe ? 'inline' : 'hidden group-hover/id:inline'}>-{keyframeId}</span>
+          {videoId}<span class={showFullKeyframe ? 'inline' : 'hidden group-hover/id:inline'}>|{keyframeId}</span>
         </span>
       </div>
 

@@ -84,10 +84,10 @@ class MultipleSearchStore {
       // Filter matches inside the sequence item
       const filteredMatches = (r.matches ?? []).filter(match => {
         for (const exclusion of this.exclusionArray) {
-          if (exclusion.includes('-')) {
-            const lastHyphenIndex = exclusion.lastIndexOf('-');
-            const vid = exclusion.substring(0, lastHyphenIndex);
-            const kid = exclusion.substring(lastHyphenIndex + 1);
+          if (exclusion.includes('|')) {
+            const lastPipeIndex = exclusion.lastIndexOf('|');
+            const vid = exclusion.substring(0, lastPipeIndex);
+            const kid = exclusion.substring(lastPipeIndex + 1);
 
             if (match.video_id === vid && match.keyframe_id === kid) {
               return false;
