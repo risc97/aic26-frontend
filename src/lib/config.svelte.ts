@@ -1,7 +1,7 @@
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 const BACKEND_URL_STORAGE_KEY = 'backend_url';
 
-const MEDIA_URL = 'http://localhost:3000';
+const MEDIA_URL = import.meta.env.VITE_MEDIA_URL || 'http://localhost:3000';
 const MEDIA_URL_STORAGE_KEY = 'media_url';
 
 const SESSION_ID = '';
