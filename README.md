@@ -1,6 +1,6 @@
 # [HCMC AIC 2026] Frontend
 
-Frontend for the CISC97 video search engine at the HCMC AI Challenge 2026
+Frontend for the TRISC video search engine at the HCMC AI Challenge 2026
 
 ---
 
